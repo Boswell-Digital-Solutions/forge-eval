@@ -1,31 +1,35 @@
 #!/usr/bin/env bash
-# Forge Documentation Protocol v1 — deterministic doc/system assembler
-# Usage: bash doc/system/BUILD.sh
-# Output: doc/feSYSTEM.md
-
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OUTPUT="${SCRIPT_DIR}/../feSYSTEM.md"
+PARTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$PARTS_DIR/../.." && pwd)"
+OUTPUT="${OUTPUT:-doc/EPOSYSTEM.md}"
+VALIDATOR="$PARTS_DIR/validate_snapshots.sh"
 
-mapfile -t PARTS < <(
-  find "${SCRIPT_DIR}" -maxdepth 1 -type f -name '[0-9][0-9]-*.md' -printf '%f\n' | sort
-)
+mkdir -p "$(dirname "$ROOT_DIR/$OUTPUT")"
 
-cat "${SCRIPT_DIR}/_index.md" > "${OUTPUT}"
+TMP_OUTPUT="$(mktemp)"
+trap 'rm -f "$TMP_OUTPUT"' EXIT
 
-if ((${#PARTS[@]} > 0)); then
-  printf '\n---\n' >> "${OUTPUT}"
+if [ -f "$PARTS_DIR/_index.md" ]; then
+  cat "$PARTS_DIR/_index.md" > "$TMP_OUTPUT"
 fi
 
-for i in "${!PARTS[@]}"; do
-  part="${PARTS[$i]}"
-  printf '\n' >> "${OUTPUT}"
-  cat "${SCRIPT_DIR}/${part}" >> "${OUTPUT}"
-
-  if (( i < ${#PARTS[@]} - 1 )); then
-    printf '\n---\n' >> "${OUTPUT}"
-  fi
+shopt -s nullglob
+for part in "$PARTS_DIR"/[0-9][0-9]-*.md; do
+  echo "" >> "$TMP_OUTPUT"
+  echo "---" >> "$TMP_OUTPUT"
+  echo "" >> "$TMP_OUTPUT"
+  cat "$part" >> "$TMP_OUTPUT"
 done
+shopt -u nullglob
 
-printf '%s rebuilt (%s lines)\n' "$(basename "${OUTPUT}")" "$(wc -l < "${OUTPUT}")"
+if [ -x "$VALIDATOR" ]; then
+  bash "$VALIDATOR" "$TMP_OUTPUT"
+fi
+
+cp "$TMP_OUTPUT" "$ROOT_DIR/$OUTPUT"
+chmod 664 "$ROOT_DIR/$OUTPUT"
+
+LINE_COUNT=$(wc -l < "$ROOT_DIR/$OUTPUT")
+echo "$OUTPUT assembled: $LINE_COUNT lines"
