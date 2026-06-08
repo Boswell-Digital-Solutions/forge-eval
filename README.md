@@ -12,6 +12,8 @@ Deterministic, schema-validated, fail-closed evaluation subsystem for the Forge 
 
 Forge Eval is an **independent repository** within the local Forge ecosystem workspace. It evaluates other independent sibling repositories as target repos. It is not a child subsystem of DataForge, NeuroForge, or forge-smithy.
 
+The core A–N evaluation pipeline is self-contained, requiring only `jsonschema` and `PyYAML` at runtime. A few **optional** subsystems integrate with sibling ecosystem repositories and are not required by the core `forge-eval run`/`validate` CLI: the centipede contract bridge (`forge_contract_core`, imported lazily and fail-closed) and lineage emission (`forge_lineage_sdk`). These are intentionally absent from `pyproject.toml` and are only needed when their respective entrypoints are used.
+
 Current implemented packs:
 
 * **Pack A**: Python scaffold + CLI + orchestration
@@ -27,6 +29,7 @@ Current implemented packs:
 * **Pack K**: Deterministic conservative hazard mapping (`hazard_map`) from structural risk + telemetry + occupancy + hidden-defect pressure
 * **Pack L**: Deterministic advisory merge decision (`merge_decision`) from `hazard_map`
 * **Pack M**: Deterministic evidence bundle assembly (`evidence_bundle`) from the fixed A-L artifact chain
+* **Pack N**: Deterministic localization pack (`localization_pack`) — file/block candidate ranking plus review/patch scope derived from the A-K artifact chain; optional stage, not enabled by default
 
 ## Repo role
 
@@ -48,8 +51,12 @@ Core invariants:
 
 ```bash
 cd rust/forge-evidence
-cargo build --offline
+cargo build
 ```
+
+`cargo build --offline` succeeds only when the crate dependencies are already in
+the local cargo cache (or vendored). In a clean offline environment, run a
+networked `cargo build` once to populate the cache first.
 
 Binary path after build:
 
@@ -104,12 +111,17 @@ Depending on enabled stages, Forge Eval currently emits:
 * `hazard_map.json`
 * `merge_decision.json`
 * `evidence_bundle.json`
+* `localization_pack.json` (only when the optional `localization_pack` stage is enabled)
 
 ## Current fixed stage order
 
 ```text
 risk_heatmap -> context_slices -> review_findings -> telemetry_matrix -> occupancy_snapshot -> capture_estimate -> hazard_map -> merge_decision -> evidence_bundle
 ```
+
+`localization_pack` is an additional optional stage, registered after
+`evidence_bundle` in the canonical stage order but not enabled by default. Enable
+it by adding `localization_pack` to `enabled_stages` in your config.
 
 ## Determinism notes
 
@@ -127,7 +139,7 @@ risk_heatmap -> context_slices -> review_findings -> telemetry_matrix -> occupan
 
 ## Status
 
-Forge Eval Packs A-M are implemented in the current repo state.
+Forge Eval Packs A-N are implemented in the current repo state (Pack N localization is an optional, non-default stage).
 
 The current A–M runtime path has been verified on a real local target repo:
 
@@ -151,3 +163,7 @@ The Rust evidence subsystem is implemented, callable, and tested. Pack M begins 
 - Pack M invokes `forge-evidence` only for canonical JSON, artifact ID, and hashchain work
 - the runtime boundary remains local and deterministic
 - signing, publishing, and release execution remain out of scope
+
+## License
+
+Proprietary — all rights reserved. See [`LICENSE`](LICENSE).
