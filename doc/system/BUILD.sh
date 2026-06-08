@@ -3,7 +3,7 @@ set -euo pipefail
 
 PARTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$PARTS_DIR/../.." && pwd)"
-OUTPUT="${OUTPUT:-doc/EPOSYSTEM.md}"
+OUTPUT="${OUTPUT:-doc/FEVSYSTEM.md}"
 VALIDATOR="$PARTS_DIR/validate_snapshots.sh"
 
 mkdir -p "$(dirname "$ROOT_DIR/$OUTPUT")"
