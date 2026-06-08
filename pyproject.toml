@@ -45,3 +45,12 @@ module = [
   "forge_lineage_sdk.*",
 ]
 ignore_missing_imports = true
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint.per-file-ignores]
+# This module deliberately imports a sibling-repo file via importlib after
+# computing its path, so the import is not at the top of the file (E402). The
+# test is skipped in CI until that sibling coupling is made optional.
+"tests/test_localization_e2e.py" = ["E402"]

@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python (lint, type, test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install package and tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest ruff mypy
+
+      - name: Lint (ruff)
+        run: ruff check src tests
+
+      - name: Type-check (mypy)
+        run: mypy
+
+      - name: Configure git identity (integration tests build throwaway repos)
+        run: |
+          git config --global user.email "ci@example.com"
+          git config --global user.name "Forge Eval CI"
+
+      # Determinism and schema validation are exercised inside the suite: the
+      # integration tests assert byte-identical repeated pipeline runs and call
+      # forge-eval validate on the emitted artifacts (using a fake evidence
+      # binary, so the Rust toolchain is not required here).
+      #
+      # The three excluded modules import sibling ecosystem repos
+      # (forge_contract_core, forge_lineage_sdk, NeuroForge) that are absent in a
+      # standalone checkout. Drop these --ignore flags once those imports are
+      # made optional / guarded.
+      - name: Tests (pytest)
+        run: |
+          pytest \
+            --ignore=tests/lineage/test_forge_eval_emitter.py \
+            --ignore=tests/test_centipede_integration.py \
+            --ignore=tests/test_localization_e2e.py
+
+  rust:
+    name: Rust forge-evidence (build, test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rust/forge-evidence
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --verbose
+      - name: Test
+        run: cargo test --verbose
