@@ -177,7 +177,14 @@ def _validate_run_object(run: Any, *, context: str) -> None:
             stage="hazard_map",
             details={"context": context},
         )
-    for field in ("run_id", "repo_path", "base_ref", "head_ref", "base_commit", "head_commit"):
+    for field in (
+        "run_id",
+        "repo_path",
+        "base_ref",
+        "head_ref",
+        "base_commit",
+        "head_commit",
+    ):
         value = run.get(field)
         if not isinstance(value, str) or not value:
             raise StageError(
@@ -225,7 +232,11 @@ def _validate_run_alignment(
             raise StageError(
                 "risk_heatmap artifact ref does not match pipeline refs",
                 stage="hazard_map",
-                details={"field": field, "expected": expected, "actual": risk_heatmap_artifact[field]},
+                details={
+                    "field": field,
+                    "expected": expected,
+                    "actual": risk_heatmap_artifact[field],
+                },
             )
 
     for context, run in (
@@ -237,20 +248,33 @@ def _validate_run_alignment(
             raise StageError(
                 "run_id mismatch across hazard inputs",
                 stage="hazard_map",
-                details={"context": context, "pipeline_run_id": run_id, "artifact_run_id": run["run_id"]},
+                details={
+                    "context": context,
+                    "pipeline_run_id": run_id,
+                    "artifact_run_id": run["run_id"],
+                },
             )
         if str(run["repo_path"]) != repo_resolved:
             raise StageError(
                 "artifact repo_path mismatch across hazard inputs",
                 stage="hazard_map",
-                details={"context": context, "pipeline_repo_path": repo_resolved, "artifact_repo_path": run["repo_path"]},
+                details={
+                    "context": context,
+                    "pipeline_repo_path": repo_resolved,
+                    "artifact_repo_path": run["repo_path"],
+                },
             )
         for field, expected in (("base_ref", base_ref), ("head_ref", head_ref)):
             if str(run[field]) != str(expected):
                 raise StageError(
                     "artifact refs mismatch across hazard inputs",
                     stage="hazard_map",
-                    details={"context": context, "field": field, "expected": expected, "actual": run[field]},
+                    details={
+                        "context": context,
+                        "field": field,
+                        "expected": expected,
+                        "actual": run[field],
+                    },
                 )
 
     for field in ("base_commit", "head_commit"):

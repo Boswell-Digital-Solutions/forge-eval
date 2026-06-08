@@ -26,7 +26,12 @@ def select_hidden_estimate(
             stage="capture_estimate",
             details={"observed": observed},
         )
-    if isinstance(round_digits, bool) or not isinstance(round_digits, int) or round_digits < 0 or round_digits > 12:
+    if (
+        isinstance(round_digits, bool)
+        or not isinstance(round_digits, int)
+        or round_digits < 0
+        or round_digits > 12
+    ):
         raise StageError(
             "selection round_digits must be an integer in [0, 12]",
             stage="capture_estimate",
@@ -44,7 +49,11 @@ def select_hidden_estimate(
 
     if chao2.get("available") is True:
         chao2_hidden = chao2.get("hidden_estimate")
-        if isinstance(chao2_hidden, bool) or not isinstance(chao2_hidden, (int, float)) or float(chao2_hidden) < 0.0:
+        if (
+            isinstance(chao2_hidden, bool)
+            or not isinstance(chao2_hidden, (int, float))
+            or float(chao2_hidden) < 0.0
+        ):
             raise StageError(
                 "Chao2 available but hidden_estimate is invalid",
                 stage="capture_estimate",
@@ -71,7 +80,11 @@ def select_hidden_estimate(
 
 def _required_non_negative_number(obj: dict[str, Any], key: str) -> float:
     value = obj.get(key)
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or float(value) < 0.0:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or float(value) < 0.0
+    ):
         raise StageError(
             "selection input missing non-negative numeric field",
             stage="capture_estimate",

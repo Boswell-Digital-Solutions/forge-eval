@@ -72,23 +72,31 @@ def build_forge_eval_evidence_bundle_payload(
         raise ValidationError("local forge-eval bundle is missing run_id")
 
     metadata = input_contract.metadata
-    repository_id = _metadata_string(metadata, "repository_id", "repo_id", "repository") or repo.name
-    source_projection_id = _metadata_string(
-        metadata,
-        "source_projection_id",
-        "centipede_projection_id",
-        "projection_id",
-    ) or f"centipede-projection:{run_id}"
-    source_fused_bundle_id = _metadata_string(
-        metadata,
-        "source_fused_bundle_id",
-        "centipede_fused_bundle_id",
-        "fused_bundle_id",
-    ) or f"centipede-fused-bundle:{run_id}"
+    repository_id = (
+        _metadata_string(metadata, "repository_id", "repo_id", "repository")
+        or repo.name
+    )
+    source_projection_id = (
+        _metadata_string(
+            metadata,
+            "source_projection_id",
+            "centipede_projection_id",
+            "projection_id",
+        )
+        or f"centipede-projection:{run_id}"
+    )
+    source_fused_bundle_id = (
+        _metadata_string(
+            metadata,
+            "source_fused_bundle_id",
+            "centipede_fused_bundle_id",
+            "fused_bundle_id",
+        )
+        or f"centipede-fused-bundle:{run_id}"
+    )
 
     artifact_refs = [
-        _canonical_artifact_ref(ref)
-        for ref in local_bundle.get("artifact_refs", [])
+        _canonical_artifact_ref(ref) for ref in local_bundle.get("artifact_refs", [])
     ]
     artifact_refs.append(
         {
@@ -113,7 +121,9 @@ def build_forge_eval_evidence_bundle_payload(
     }
 
 
-def validate_forge_eval_evidence_bundle_payload(payload: dict[str, Any]) -> dict[str, Any]:
+def validate_forge_eval_evidence_bundle_payload(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
     """Validate forge-eval's canonical payload through forge-contract-core.
 
     This bridge intentionally imports forge-contract-core lazily so forge-eval can
@@ -124,7 +134,9 @@ def validate_forge_eval_evidence_bundle_payload(payload: dict[str, Any]) -> dict
     try:
         from forge_contract_core.validators.families import validate_family_payload
         from forge_contract_core.validators.role_matrix import check_producer_admitted
-    except Exception as exc:  # pragma: no cover - exercised only in missing dependency envs
+    except (
+        Exception
+    ) as exc:  # pragma: no cover - exercised only in missing dependency envs
         raise ValidationError(
             "forge-contract-core is required for Evaluation Spine contract validation",
             details={
@@ -136,7 +148,9 @@ def validate_forge_eval_evidence_bundle_payload(payload: dict[str, Any]) -> dict
         ) from exc
 
     try:
-        check_producer_admitted(FORGE_EVAL_PRODUCER_REPO_ID, FORGE_EVAL_EVIDENCE_BUNDLE_FAMILY)
+        check_producer_admitted(
+            FORGE_EVAL_PRODUCER_REPO_ID, FORGE_EVAL_EVIDENCE_BUNDLE_FAMILY
+        )
         validate_family_payload(
             FORGE_EVAL_EVIDENCE_BUNDLE_FAMILY,
             FORGE_EVAL_EVIDENCE_BUNDLE_VERSION,

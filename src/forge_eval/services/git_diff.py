@@ -45,7 +45,9 @@ def resolve_commit(repo_path: str | Path, ref: str) -> str:
     return out
 
 
-def list_changed_files(repo_path: str | Path, base_ref: str, head_ref: str) -> list[ChangedFile]:
+def list_changed_files(
+    repo_path: str | Path, base_ref: str, head_ref: str
+) -> list[ChangedFile]:
     output = _run_git(
         repo_path,
         ["diff", "--name-status", "--find-renames", base_ref, head_ref],
@@ -60,7 +62,9 @@ def list_changed_files(repo_path: str | Path, base_ref: str, head_ref: str) -> l
         status = parts[0]
         if status.startswith("R"):
             if len(parts) != 3:
-                raise GitError("ambiguous rename status line", details={"line": raw_line})
+                raise GitError(
+                    "ambiguous rename status line", details={"line": raw_line}
+                )
             results.append(ChangedFile(status="R", old_path=parts[1], path=parts[2]))
             continue
 
@@ -73,22 +77,30 @@ def list_changed_files(repo_path: str | Path, base_ref: str, head_ref: str) -> l
     return results
 
 
-def numstat_for_file(repo_path: str | Path, base_ref: str, head_ref: str, file_path: str) -> tuple[int, int, bool]:
-    output = _run_git(repo_path, ["diff", "--numstat", base_ref, head_ref, "--", file_path])
+def numstat_for_file(
+    repo_path: str | Path, base_ref: str, head_ref: str, file_path: str
+) -> tuple[int, int, bool]:
+    output = _run_git(
+        repo_path, ["diff", "--numstat", base_ref, head_ref, "--", file_path]
+    )
     lines = [line for line in output.splitlines() if line.strip()]
     if not lines:
         return (0, 0, False)
     first = lines[0]
     parts = first.split("\t")
     if len(parts) < 3:
-        raise GitError("ambiguous numstat line", details={"line": first, "file_path": file_path})
+        raise GitError(
+            "ambiguous numstat line", details={"line": first, "file_path": file_path}
+        )
     add_s, del_s = parts[0], parts[1]
     if add_s == "-" or del_s == "-":
         return (0, 0, True)
     try:
         return (int(add_s), int(del_s), False)
     except ValueError as exc:
-        raise GitError("invalid numstat values", details={"line": first, "file_path": file_path}) from exc
+        raise GitError(
+            "invalid numstat values", details={"line": first, "file_path": file_path}
+        ) from exc
 
 
 def unified_diff_for_file(

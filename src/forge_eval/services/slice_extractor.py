@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Iterable
 
 from forge_eval.errors import StageError
 from forge_eval.services.git_diff import (
@@ -52,12 +52,18 @@ def parse_unified_diff_hunks(diff_text: str) -> list[ChangedHunk]:
 
         if count == 0:
             # Deletion-only hunk in head context maps to insertion point line.
-            hunks.append(ChangedHunk(start_line=start_line, end_line=start_line, changed_line_count=0))
+            hunks.append(
+                ChangedHunk(
+                    start_line=start_line, end_line=start_line, changed_line_count=0
+                )
+            )
             continue
 
         end_line = start_line + count - 1
         hunks.append(
-            ChangedHunk(start_line=start_line, end_line=end_line, changed_line_count=count)
+            ChangedHunk(
+                start_line=start_line, end_line=end_line, changed_line_count=count
+            )
         )
 
     return hunks
@@ -78,7 +84,7 @@ def _build_slice(
     changed_ranges: list[LineRange],
     base_ref: str,
     head_ref: str,
-) -> dict[str, Any]:
+) -> dict[str, object]:
     changed_line_count = overlap_with_ranges(rng, changed_ranges)
     total_line_count = range_line_count(rng)
     start_line, end_line = rng
@@ -106,9 +112,11 @@ def _extract_file_slices(
     file_path: str,
     base_ref: str,
     head_ref: str,
-    config: dict[str, Any],
-) -> list[dict[str, Any]]:
-    added, deleted, is_binary = numstat_for_file(repo_path, base_ref, head_ref, file_path)
+    config: dict[str, object],
+) -> list[dict[str, object]]:
+    added, deleted, is_binary = numstat_for_file(
+        repo_path, base_ref, head_ref, file_path
+    )
     if is_binary:
         policy = str(config["binary_file_policy"])
         if policy == "ignore":
@@ -185,9 +193,9 @@ def extract_context_slices(
     repo_path: str | Path,
     base_ref: str,
     head_ref: str,
-    config: dict[str, Any],
+    config: dict[str, object],
     target_file_subset: Iterable[str] | None = None,
-) -> dict[str, Any]:
+) -> dict[str, object]:
     repo = Path(repo_path)
     include_extensions = list(config["include_file_extensions"])
     exclude_paths = list(config["exclude_paths"])
@@ -199,7 +207,7 @@ def extract_context_slices(
 
     changed_files = list_changed_files(repo, base_ref, head_ref)
 
-    slices: list[dict[str, Any]] = []
+    slices: list[dict[str, object]] = []
     included_targets: list[str] = []
 
     for changed in changed_files:
@@ -225,7 +233,9 @@ def extract_context_slices(
             included_targets.append(candidate_path)
         slices.extend(file_slices)
 
-    slices.sort(key=lambda s: (str(s["file_path"]), int(s["start_line"]), int(s["end_line"])))
+    slices.sort(
+        key=lambda s: (str(s["file_path"]), int(s["start_line"]), int(s["end_line"]))
+    )
 
     running_total = 0
     for slc in slices:

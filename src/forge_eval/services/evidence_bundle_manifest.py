@@ -5,8 +5,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from forge_eval.evidence_cli import EvidenceCli
 from forge_eval.errors import StageError
+from forge_eval.evidence_cli import EvidenceCli
 
 _HASHCHAIN_SEED = "forge-evidence-chain-v1"
 
@@ -25,7 +25,9 @@ def required_bundle_artifacts() -> tuple[tuple[str, str], ...]:
     )
 
 
-def build_evidence_manifest(*, artifacts_dir: str | Path, evidence_cli: EvidenceCli) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+def build_evidence_manifest(
+    *, artifacts_dir: str | Path, evidence_cli: EvidenceCli
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     out_dir = Path(artifacts_dir)
     specs = required_bundle_artifacts()
     entries: list[dict[str, Any]] = []
@@ -56,7 +58,12 @@ def build_evidence_manifest(*, artifacts_dir: str | Path, evidence_cli: Evidence
 
     temp_manifest = out_dir / "_evidence_hashchain_inputs.json"
     temp_manifest.write_text(
-        json.dumps({"artifacts": manifest_inputs}, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+        json.dumps(
+            {"artifacts": manifest_inputs},
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=True,
+        )
         + "\n",
         encoding="utf-8",
     )
@@ -69,7 +76,9 @@ def build_evidence_manifest(*, artifacts_dir: str | Path, evidence_cli: Evidence
     return entries, manifest
 
 
-def _normalize_and_validate_hashchain(*, hashchain: dict[str, Any], entries: list[dict[str, Any]]) -> dict[str, Any]:
+def _normalize_and_validate_hashchain(
+    *, hashchain: dict[str, Any], entries: list[dict[str, Any]]
+) -> dict[str, Any]:
     if hashchain.get("kind") != "hashchain":
         raise StageError(
             "forge-evidence hashchain output kind mismatch",
@@ -79,7 +88,11 @@ def _normalize_and_validate_hashchain(*, hashchain: dict[str, Any], entries: lis
     artifact_hashes = hashchain.get("artifact_hashes")
     chain_hashes = hashchain.get("chain_hashes")
     final_chain_hash = hashchain.get("final_chain_hash")
-    if not isinstance(artifact_hashes, list) or not isinstance(chain_hashes, list) or not isinstance(final_chain_hash, str):
+    if (
+        not isinstance(artifact_hashes, list)
+        or not isinstance(chain_hashes, list)
+        or not isinstance(final_chain_hash, str)
+    ):
         raise StageError(
             "forge-evidence hashchain output missing required fields",
             stage="evidence_bundle",
@@ -126,23 +139,38 @@ def _normalize_and_validate_hashchain(*, hashchain: dict[str, Any], entries: lis
             raise StageError(
                 "forge-evidence hashchain canonical sha mismatch",
                 stage="evidence_bundle",
-                details={"path": expected["path"], "expected": expected["canonical_sha256"], "actual": actual_sha},
+                details={
+                    "path": expected["path"],
+                    "expected": expected["canonical_sha256"],
+                    "actual": actual_sha,
+                },
             )
         if actual_id != expected["artifact_id"]:
             raise StageError(
                 "forge-evidence hashchain artifact id mismatch",
                 stage="evidence_bundle",
-                details={"path": expected["path"], "expected": expected["artifact_id"], "actual": actual_id},
+                details={
+                    "path": expected["path"],
+                    "expected": expected["artifact_id"],
+                    "actual": actual_id,
+                },
             )
         normalized_order.append(actual_path)
 
-    normalized_chain_hashes = [_require_hex(item, field="chain_hashes") for item in chain_hashes]
-    normalized_final_chain_hash = _require_hex(final_chain_hash, field="final_chain_hash")
+    normalized_chain_hashes = [
+        _require_hex(item, field="chain_hashes") for item in chain_hashes
+    ]
+    normalized_final_chain_hash = _require_hex(
+        final_chain_hash, field="final_chain_hash"
+    )
     if normalized_chain_hashes[-1] != normalized_final_chain_hash:
         raise StageError(
             "forge-evidence final chain hash does not match terminal chain hash",
             stage="evidence_bundle",
-            details={"final_chain_hash": normalized_final_chain_hash, "terminal_chain_hash": normalized_chain_hashes[-1]},
+            details={
+                "final_chain_hash": normalized_final_chain_hash,
+                "terminal_chain_hash": normalized_chain_hashes[-1],
+            },
         )
 
     return {
@@ -167,7 +195,11 @@ def _normalize_hashchain_path(value: Any) -> str:
 
 
 def _require_hex(value: Any, *, field: str) -> str:
-    if not isinstance(value, str) or len(value) != 64 or any(ch not in "0123456789abcdef" for ch in value):
+    if (
+        not isinstance(value, str)
+        or len(value) != 64
+        or any(ch not in "0123456789abcdef" for ch in value)
+    ):
         raise StageError(
             "forge-evidence hash output must be lowercase 64-char hex",
             stage="evidence_bundle",

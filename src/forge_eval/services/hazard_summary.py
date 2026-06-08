@@ -5,7 +5,6 @@ from typing import Any
 from forge_eval.errors import StageError
 from forge_eval.services.hazard_model import clamp_unit, map_hazard_tier, round_float
 
-
 UNCERTAINTY_FLAG_KEYS = (
     "sparse_capture_data",
     "low_doubleton_support",
@@ -35,10 +34,18 @@ def build_hazard_summary(
     round_digits = _required_round_digits(model)
     parameters = _required_parameters(model)
 
-    risk_summary = _required_object(risk_heatmap_artifact, "summary", context="risk_heatmap")
-    telemetry_summary = _required_object(telemetry_matrix_artifact, "summary", context="telemetry_matrix")
-    occupancy_summary = _required_object(occupancy_snapshot_artifact, "summary", context="occupancy_snapshot")
-    capture_summary = _required_object(capture_estimate_artifact, "summary", context="capture_estimate")
+    risk_summary = _required_object(
+        risk_heatmap_artifact, "summary", context="risk_heatmap"
+    )
+    telemetry_summary = _required_object(
+        telemetry_matrix_artifact, "summary", context="telemetry_matrix"
+    )
+    occupancy_summary = _required_object(
+        occupancy_snapshot_artifact, "summary", context="occupancy_snapshot"
+    )
+    capture_summary = _required_object(
+        capture_estimate_artifact, "summary", context="capture_estimate"
+    )
 
     defect_count = _required_non_negative_int(telemetry_summary, "defect_count")
     occupancy_defect_rows = _required_non_negative_int(occupancy_summary, "defect_rows")
@@ -61,11 +68,18 @@ def build_hazard_summary(
         raise StageError(
             "capture_estimate selected_hidden cannot exceed selected_total",
             stage="hazard_map",
-            details={"selected_hidden": selected_hidden, "selected_total": selected_total},
+            details={
+                "selected_hidden": selected_hidden,
+                "selected_total": selected_total,
+            },
         )
 
-    hidden_pressure = 0.0 if selected_total <= 0.0 else clamp_unit(selected_hidden / selected_total)
-    hidden_uplift = clamp_unit(float(parameters["hazard_hidden_uplift_strength"]) * hidden_pressure)
+    hidden_pressure = (
+        0.0 if selected_total <= 0.0 else clamp_unit(selected_hidden / selected_total)
+    )
+    hidden_uplift = clamp_unit(
+        float(parameters["hazard_hidden_uplift_strength"]) * hidden_pressure
+    )
 
     uncertainty_flags = _build_uncertainty_flags(
         telemetry_summary=telemetry_summary,
@@ -73,10 +87,17 @@ def build_hazard_summary(
         capture_summary=capture_summary,
     )
     uncertainty_ratio = len(uncertainty_flags) / float(len(UNCERTAINTY_FLAG_KEYS))
-    uncertainty_uplift = clamp_unit(float(parameters["hazard_uncertainty_boost"]) * uncertainty_ratio)
+    uncertainty_uplift = clamp_unit(
+        float(parameters["hazard_uncertainty_boost"]) * uncertainty_ratio
+    )
 
     hazard_score = clamp_unit(
-        1.0 - ((1.0 - base_hazard_score) * (1.0 - hidden_uplift) * (1.0 - uncertainty_uplift))
+        1.0
+        - (
+            (1.0 - base_hazard_score)
+            * (1.0 - hidden_uplift)
+            * (1.0 - uncertainty_uplift)
+        )
     )
     hazard_tier = map_hazard_tier(hazard_score)
 
@@ -84,7 +105,9 @@ def build_hazard_summary(
     max_risk_score = _required_unit_number(risk_summary, "max_risk_score")
     max_hazard_contribution = 0.0
     if rows:
-        max_hazard_contribution = max(_required_unit_number(row, "hazard_contribution") for row in rows)
+        max_hazard_contribution = max(
+            _required_unit_number(row, "hazard_contribution") for row in rows
+        )
     blocking_threshold = _required_unit_number(parameters, "hazard_blocking_threshold")
 
     blocking_reason_flags = _build_blocking_reason_flags(
@@ -157,7 +180,8 @@ def _build_blocking_reason_flags(
     if hazard_score >= blocking_threshold:
         flags.append("hazard_score_threshold")
     if any(
-        str(row.get("severity")) == "critical" and _required_unit_number(row, "local_risk_score") >= 0.60
+        str(row.get("severity")) == "critical"
+        and _required_unit_number(row, "local_risk_score") >= 0.60
         for row in rows
     ):
         flags.append("critical_defect_on_risky_file")
@@ -213,7 +237,11 @@ def _required_non_negative_int(obj: dict[str, Any], key: str) -> int:
 
 def _required_non_negative_number(obj: dict[str, Any], key: str) -> float:
     value = obj.get(key)
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or float(value) < 0.0:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or float(value) < 0.0
+    ):
         raise StageError(
             "hazard_map requires non-negative numeric field",
             stage="hazard_map",

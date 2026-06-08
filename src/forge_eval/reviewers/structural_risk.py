@@ -26,7 +26,11 @@ class StructuralRiskReviewer:
 
         ordered_slices = sorted(
             slices,
-            key=lambda s: (str(s["file_path"]), int(s["start_line"]), int(s["end_line"])),
+            key=lambda s: (
+                str(s["file_path"]),
+                int(s["start_line"]),
+                int(s["end_line"]),
+            ),
         )
         for slc in ordered_slices:
             file_path = str(slc["file_path"])
@@ -45,14 +49,19 @@ class StructuralRiskReviewer:
                     "description": (
                         "File crossed structural risk threshold during Pack E scoring."
                     ),
-                    "severity": str(spec.finding_rules.get("default_severity", "medium")),
+                    "severity": str(
+                        spec.finding_rules.get("default_severity", "medium")
+                    ),
                     "confidence": float(spec.finding_rules.get("confidence", 0.75)),
                     "category": str(spec.finding_rules.get("default_category", "risk")),
                     "line_start": int(slc["start_line"]),
                     "line_end": int(slc["end_line"]),
                     "evidence": {
                         "anchors": [str(slc["slice_id"])],
-                        "signals": [f"risk_score:{risk_score:.8f}", f"threshold:{threshold:.8f}"],
+                        "signals": [
+                            f"risk_score:{risk_score:.8f}",
+                            f"threshold:{threshold:.8f}",
+                        ],
                     },
                 }
             )

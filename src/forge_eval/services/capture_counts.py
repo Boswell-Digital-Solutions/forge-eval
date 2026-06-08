@@ -64,7 +64,11 @@ def build_capture_counts(
         )
 
     global_k_eff = telemetry_summary.get("k_eff")
-    if isinstance(global_k_eff, bool) or not isinstance(global_k_eff, int) or global_k_eff < 0:
+    if (
+        isinstance(global_k_eff, bool)
+        or not isinstance(global_k_eff, int)
+        or global_k_eff < 0
+    ):
         raise StageError(
             "telemetry summary has invalid global k_eff",
             stage="capture_estimate",
@@ -86,7 +90,9 @@ def build_capture_counts(
                 details={"defect_key": defect_key, "type": str(type(observations))},
             )
 
-        observed_by, missed_by, null_by = _count_observations(observations, defect_key=defect_key)
+        observed_by, missed_by, null_by = _count_observations(
+            observations, defect_key=defect_key
+        )
         k_eff_defect = _required_non_negative_int(matrix_row, "k_eff_defect")
         if observed_by + missed_by != k_eff_defect:
             raise StageError(
@@ -143,13 +149,23 @@ def build_capture_counts(
     defect_rows = len(occupancy_rows)
     included_count = len(included_rows)
     excluded_count = defect_rows - included_count
-    histogram_payload = {str(freq): count for freq, count in sorted(incidence_histogram.items())}
+    histogram_payload = {
+        str(freq): count for freq, count in sorted(incidence_histogram.items())
+    }
     f1 = incidence_histogram.get(1, 0)
     f2 = incidence_histogram.get(2, 0)
 
-    rare_count = sum(count for freq, count in incidence_histogram.items() if freq <= rare_threshold)
-    frequent_count = sum(count for freq, count in incidence_histogram.items() if freq > rare_threshold)
-    rare_incidence_total = sum(freq * count for freq, count in incidence_histogram.items() if freq <= rare_threshold)
+    rare_count = sum(
+        count for freq, count in incidence_histogram.items() if freq <= rare_threshold
+    )
+    frequent_count = sum(
+        count for freq, count in incidence_histogram.items() if freq > rare_threshold
+    )
+    rare_incidence_total = sum(
+        freq * count
+        for freq, count in incidence_histogram.items()
+        if freq <= rare_threshold
+    )
     q1 = f1
     q2 = f2
     sample_coverage = 1.0
@@ -214,7 +230,9 @@ def _map_by_defect_key(items: list[Any], *, section: str) -> dict[str, dict[str,
     return mapped
 
 
-def _count_observations(observations: dict[str, Any], *, defect_key: str) -> tuple[int, int, int]:
+def _count_observations(
+    observations: dict[str, Any], *, defect_key: str
+) -> tuple[int, int, int]:
     observed_by = 0
     missed_by = 0
     null_by = 0
@@ -230,7 +248,11 @@ def _count_observations(observations: dict[str, Any], *, defect_key: str) -> tup
             raise StageError(
                 "illegal telemetry matrix cell value",
                 stage="capture_estimate",
-                details={"defect_key": defect_key, "reviewer_id": reviewer_id, "cell": cell},
+                details={
+                    "defect_key": defect_key,
+                    "reviewer_id": reviewer_id,
+                    "cell": cell,
+                },
             )
     return observed_by, missed_by, null_by
 

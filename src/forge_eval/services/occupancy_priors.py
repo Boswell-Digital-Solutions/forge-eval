@@ -18,7 +18,11 @@ def derive_prior(
     severity: str,
     config: dict[str, Any],
 ) -> float:
-    if isinstance(support_count, bool) or not isinstance(support_count, int) or support_count < 0:
+    if (
+        isinstance(support_count, bool)
+        or not isinstance(support_count, int)
+        or support_count < 0
+    ):
         raise StageError(
             "support_count must be a non-negative integer",
             stage="occupancy_snapshot",
@@ -35,7 +39,11 @@ def derive_prior(
     prior_base = _required_unit_float(config, "occupancy_prior_base")
     support_uplift = _required_unit_float(config, "occupancy_support_uplift")
 
-    prior = prior_base + (support_uplift if support_count > 0 else 0.0) + SEVERITY_UPLIFT[severity]
+    prior = (
+        prior_base
+        + (support_uplift if support_count > 0 else 0.0)
+        + SEVERITY_UPLIFT[severity]
+    )
     return _clamp(prior, 0.01, 0.99)
 
 

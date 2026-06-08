@@ -11,7 +11,6 @@ from forge_eval.stages.risk_heatmap import run_stage
 from forge_eval.validation.schema_loader import load_schema
 from forge_eval.validation.validate_artifact import validate_instance
 
-
 pytestmark = pytest.mark.integration
 
 
@@ -44,12 +43,15 @@ def _commit_all(repo: Path, message: str) -> None:
 def test_risk_heatmap_repo_integration_is_deterministic(tmp_path: Path) -> None:
     repo = _init_repo(tmp_path)
 
-    (repo / "a.py").write_text("\n".join([f"line{i:02d}" for i in range(1, 11)]) + "\n", encoding="utf-8")
+    (repo / "a.py").write_text(
+        "\n".join([f"line{i:02d}" for i in range(1, 11)]) + "\n", encoding="utf-8"
+    )
     (repo / "b.py").write_text("import a\n\nvalue = 1\n", encoding="utf-8")
     _commit_all(repo, "base")
 
     (repo / "a.py").write_text(
-        "\n".join([f"line{i:02d}" if i != 5 else "line05_mod" for i in range(1, 11)]) + "\n",
+        "\n".join([f"line{i:02d}" if i != 5 else "line05_mod" for i in range(1, 11)])
+        + "\n",
         encoding="utf-8",
     )
     (repo / "b.py").write_text("import a\nimport json\n\nvalue = 2\n", encoding="utf-8")

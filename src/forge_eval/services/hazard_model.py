@@ -29,9 +29,13 @@ def load_hazard_model(config: dict[str, Any]) -> dict[str, Any]:
             details={"hazard_model_version": model_version},
         )
 
-    round_digits = _required_int_in_range(config, "hazard_round_digits", minimum=0, maximum=12)
+    round_digits = _required_int_in_range(
+        config, "hazard_round_digits", minimum=0, maximum=12
+    )
     hidden_strength = _required_unit_float(config, "hazard_hidden_uplift_strength")
-    structural_strength = _required_unit_float(config, "hazard_structural_risk_strength")
+    structural_strength = _required_unit_float(
+        config, "hazard_structural_risk_strength"
+    )
     occupancy_strength = _required_unit_float(config, "hazard_occupancy_strength")
     support_strength = _required_unit_float(config, "hazard_support_uplift_strength")
     uncertainty_boost = _required_unit_float(config, "hazard_uncertainty_boost")
@@ -112,7 +116,9 @@ def _required_unit_float(config: dict[str, Any], key: str) -> float:
     return number
 
 
-def _required_int_in_range(config: dict[str, Any], key: str, *, minimum: int, maximum: int) -> int:
+def _required_int_in_range(
+    config: dict[str, Any], key: str, *, minimum: int, maximum: int
+) -> int:
     value = config.get(key)
     if isinstance(value, bool) or not isinstance(value, int):
         raise StageError(
@@ -124,6 +130,11 @@ def _required_int_in_range(config: dict[str, Any], key: str, *, minimum: int, ma
         raise StageError(
             "hazard config integer is out of allowed range",
             stage="hazard_map",
-            details={"key": key, "value": value, "minimum": minimum, "maximum": maximum},
+            details={
+                "key": key,
+                "value": value,
+                "minimum": minimum,
+                "maximum": maximum,
+            },
         )
     return value

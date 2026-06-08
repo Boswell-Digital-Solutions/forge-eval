@@ -5,6 +5,7 @@ import re
 from pathlib import PurePosixPath
 from typing import Any, Iterable
 
+from forge_eval.errors import GitError
 from forge_eval.services.git_diff import (
     file_content_at_ref,
     path_has_allowed_extension,
@@ -42,7 +43,9 @@ def _longest_prefix_weight(path: str, weights: dict[str, float]) -> float:
     best_value = 1.0
     for prefix in sorted(weights.keys()):
         normalized_prefix = _normalize_path(prefix)
-        if normalized.startswith(normalized_prefix) and len(normalized_prefix) >= len(best_prefix):
+        if normalized.startswith(normalized_prefix) and len(normalized_prefix) >= len(
+            best_prefix
+        ):
             best_prefix = normalized_prefix
             best_value = float(weights[prefix])
     return best_value
@@ -69,7 +72,9 @@ def _rust_module_name(path: str) -> str | None:
     return "::".join(list(p.parts))[:-3]
 
 
-def _resolve_relative_import(source: str, spec: str, candidates: set[str]) -> str | None:
+def _resolve_relative_import(
+    source: str, spec: str, candidates: set[str]
+) -> str | None:
     if not spec.startswith("./") and not spec.startswith("../"):
         return None
 
@@ -102,7 +107,8 @@ def compute_centrality_scores(
     candidate_files = [
         _normalize_path(path)
         for path in tracked_files
-        if path_has_allowed_extension(path, include_extensions) and not path_is_excluded(path, exclude_paths)
+        if path_has_allowed_extension(path, include_extensions)
+        and not path_is_excluded(path, exclude_paths)
     ]
     candidate_files = sorted(set(candidate_files))
     candidate_set = set(candidate_files)
@@ -121,7 +127,7 @@ def compute_centrality_scores(
     for source in candidate_files:
         try:
             content = file_content_at_ref(repo_path, head_ref, source)
-        except Exception:
+        except GitError:
             # Missing files at head are ignored here; stage logic handles changed targets separately.
             continue
 
@@ -135,9 +141,13 @@ def compute_centrality_scores(
                 continue
 
             if source.endswith((".ts", ".tsx", ".js", ".jsx")):
-                ts_match = TS_IMPORT_RE.match(line) or TS_IMPORT_SIDE_EFFECT_RE.match(line)
+                ts_match = TS_IMPORT_RE.match(line) or TS_IMPORT_SIDE_EFFECT_RE.match(
+                    line
+                )
                 if ts_match:
-                    target = _resolve_relative_import(source, ts_match.group(1), candidate_set)
+                    target = _resolve_relative_import(
+                        source, ts_match.group(1), candidate_set
+                    )
                     if target and target != source:
                         edges.add((source, target))
                     continue
@@ -160,7 +170,9 @@ def compute_centrality_scores(
         out_degree[source] += 1.0
         in_degree[target] += 1.0
 
-    centrality_raw = {path: out_degree[path] + in_degree[path] for path in candidate_files}
+    centrality_raw = {
+        path: out_degree[path] + in_degree[path] for path in candidate_files
+    }
     return _normalize_scores(centrality_raw)
 
 
@@ -202,9 +214,18 @@ def build_risk_targets(
         added, deleted = churn_by_path.get(path, (0, 0))
         reasons = [
             {"metric": "churn", "value": round(churn_norm.get(path, 0.0), 8)},
-            {"metric": "centrality", "value": round(centrality_scores.get(path, 0.0), 8)},
-            {"metric": "change_magnitude", "value": round(magnitude_norm.get(path, 0.0), 8)},
-            {"metric": "path_weight", "value": round(_longest_prefix_weight(path, path_weights), 8)},
+            {
+                "metric": "centrality",
+                "value": round(centrality_scores.get(path, 0.0), 8),
+            },
+            {
+                "metric": "change_magnitude",
+                "value": round(magnitude_norm.get(path, 0.0), 8),
+            },
+            {
+                "metric": "path_weight",
+                "value": round(_longest_prefix_weight(path, path_weights), 8),
+            },
         ]
 
         targets.append(

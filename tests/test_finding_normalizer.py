@@ -14,7 +14,11 @@ def _spec() -> ReviewerSpec:
         enabled=True,
         failure_mode="fail_stage",
         scope_rules={},
-        finding_rules={"default_severity": "medium", "default_category": "consistency", "confidence": 0.7},
+        finding_rules={
+            "default_severity": "medium",
+            "default_category": "consistency",
+            "confidence": 0.7,
+        },
     )
 
 
@@ -86,7 +90,11 @@ def test_normalizer_allows_duplicate_defect_key_across_reviewers() -> None:
         enabled=True,
         failure_mode="fail_stage",
         scope_rules={},
-        finding_rules={"default_severity": "medium", "default_category": "consistency", "confidence": 0.7},
+        finding_rules={
+            "default_severity": "medium",
+            "default_category": "consistency",
+            "confidence": 0.7,
+        },
     )
     findings = normalize_findings(
         raw_findings=[

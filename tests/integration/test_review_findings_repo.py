@@ -11,7 +11,6 @@ from forge_eval.validation.schema_loader import load_schema
 from forge_eval.validation.validate_artifact import load_json_file, validate_instance
 from tests._evidence_test_helper import write_fake_evidence_binary
 
-
 pytestmark = pytest.mark.integration
 
 
@@ -123,7 +122,9 @@ def test_pipeline_emits_review_telemetry_occupancy_capture_hazard_merge_decision
     schema = load_schema("review_findings")
     parsed = load_json_file(artifact1)
     validate_instance(parsed, schema, artifact_kind="review_findings")
-    assert all(str(finding["defect_key"]).startswith("dfk_") for finding in parsed["findings"])
+    assert all(
+        str(finding["defect_key"]).startswith("dfk_") for finding in parsed["findings"]
+    )
 
     telemetry_schema = load_schema("telemetry_matrix")
     telemetry = load_json_file(telemetry1)

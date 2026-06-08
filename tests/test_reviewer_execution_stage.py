@@ -66,7 +66,9 @@ def test_reviewer_execution_stage_emits_findings_and_statuses() -> None:
     assert all(finding["defect_key"].startswith("dfk_") for finding in out["findings"])
 
 
-def test_reviewer_execution_record_and_continue_keeps_failed_status(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_reviewer_execution_record_and_continue_keeps_failed_status(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     cfg = normalize_config(
         {
             "reviewer_failure_policy": "record_and_continue",
@@ -77,7 +79,10 @@ def test_reviewer_execution_record_and_continue_keeps_failed_status(monkeypatch:
                     "enabled": True,
                     "failure_mode": "record_failed",
                     "scope_rules": {"include_extensions": [".py"]},
-                    "finding_rules": {"default_severity": "medium", "default_category": "consistency"},
+                    "finding_rules": {
+                        "default_severity": "medium",
+                        "default_category": "consistency",
+                    },
                 }
             ],
         }
@@ -86,10 +91,14 @@ def test_reviewer_execution_record_and_continue_keeps_failed_status(monkeypatch:
     class _BoomReviewer:
         kind = "changed_lines"
 
-        def review(self, *, slices, context, spec):  # pragma: no cover - exercised by test
+        def review(
+            self, *, slices, context, spec
+        ):  # pragma: no cover - exercised by test
             raise RuntimeError("boom")
 
-    monkeypatch.setattr("forge_eval.reviewers.adapters.get_reviewer", lambda kind: _BoomReviewer())
+    monkeypatch.setattr(
+        "forge_eval.reviewers.adapters.get_reviewer", lambda kind: _BoomReviewer()
+    )
 
     out = run_stage(
         repo_path=Path("/tmp/repo"),
@@ -104,7 +113,9 @@ def test_reviewer_execution_record_and_continue_keeps_failed_status(monkeypatch:
     assert out["summary"]["reviewer_failed_count"] == 1
 
 
-def test_reviewer_execution_fail_stage_on_reviewer_error(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_reviewer_execution_fail_stage_on_reviewer_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     cfg = normalize_config(
         {
             "reviewer_failure_policy": "fail_stage",
@@ -115,7 +126,10 @@ def test_reviewer_execution_fail_stage_on_reviewer_error(monkeypatch: pytest.Mon
                     "enabled": True,
                     "failure_mode": "record_failed",
                     "scope_rules": {"include_extensions": [".py"]},
-                    "finding_rules": {"default_severity": "medium", "default_category": "consistency"},
+                    "finding_rules": {
+                        "default_severity": "medium",
+                        "default_category": "consistency",
+                    },
                 }
             ],
         }
@@ -124,10 +138,14 @@ def test_reviewer_execution_fail_stage_on_reviewer_error(monkeypatch: pytest.Mon
     class _BoomReviewer:
         kind = "changed_lines"
 
-        def review(self, *, slices, context, spec):  # pragma: no cover - exercised by test
+        def review(
+            self, *, slices, context, spec
+        ):  # pragma: no cover - exercised by test
             raise RuntimeError("boom")
 
-    monkeypatch.setattr("forge_eval.reviewers.adapters.get_reviewer", lambda kind: _BoomReviewer())
+    monkeypatch.setattr(
+        "forge_eval.reviewers.adapters.get_reviewer", lambda kind: _BoomReviewer()
+    )
 
     with pytest.raises(StageError):
         run_stage(

@@ -5,11 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from forge_eval.evidence_cli import EvidenceCliError
 from forge_eval.errors import StageError
+from forge_eval.evidence_cli import EvidenceCliError
 from forge_eval.stages.evidence_bundle import run_stage
 from tests._evidence_test_helper import write_fake_evidence_binary
-
 
 REQUIRED_FILES = {
     "config.resolved.json": {
@@ -151,7 +150,11 @@ REQUIRED_FILES = {
 
 
 def _write_json(path: Path, payload: dict) -> None:
-    path.write_text(json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+        + "\n",
+        encoding="utf-8",
+    )
 
 
 def _materialize_artifacts(tmp_path: Path) -> Path:
@@ -176,7 +179,9 @@ def _stage_inputs() -> dict:
     }
 
 
-def test_evidence_bundle_stage_emits_deterministic_manifest(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_evidence_bundle_stage_emits_deterministic_manifest(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     out = _materialize_artifacts(tmp_path)
     fake = write_fake_evidence_binary(tmp_path / "forge-evidence")
     monkeypatch.setenv("FORGE_EVIDENCE_BIN", str(fake))
@@ -196,7 +201,10 @@ def test_evidence_bundle_stage_emits_deterministic_manifest(tmp_path: Path, monk
     assert artifact["inputs"]["evidence_runtime"] == "forge_evidence_cli"
     assert artifact["model"]["name"] == "evidence_bundle_rev1"
     assert artifact["summary"]["artifact_count"] == 9
-    assert artifact["summary"]["final_chain_hash"] == artifact["manifest"]["final_chain_hash"]
+    assert (
+        artifact["summary"]["final_chain_hash"]
+        == artifact["manifest"]["final_chain_hash"]
+    )
     assert [item["path"] for item in artifact["artifacts"]] == [
         "config.resolved.json",
         "risk_heatmap.json",
@@ -210,7 +218,9 @@ def test_evidence_bundle_stage_emits_deterministic_manifest(tmp_path: Path, monk
     ]
 
 
-def test_evidence_bundle_missing_upstream_file_fails_closed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_evidence_bundle_missing_upstream_file_fails_closed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     out = _materialize_artifacts(tmp_path)
     fake = write_fake_evidence_binary(tmp_path / "forge-evidence")
     monkeypatch.setenv("FORGE_EVIDENCE_BIN", str(fake))
@@ -228,7 +238,9 @@ def test_evidence_bundle_missing_upstream_file_fails_closed(tmp_path: Path, monk
         )
 
 
-def test_evidence_bundle_run_id_mismatch_fails_closed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_evidence_bundle_run_id_mismatch_fails_closed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     out = _materialize_artifacts(tmp_path)
     fake = write_fake_evidence_binary(tmp_path / "forge-evidence")
     monkeypatch.setenv("FORGE_EVIDENCE_BIN", str(fake))
@@ -244,11 +256,17 @@ def test_evidence_bundle_run_id_mismatch_fails_closed(tmp_path: Path, monkeypatc
             run_id="run-1",
             config={"evidence_bundle_model_version": "evidence_bundle_rev1"},
             merge_decision_artifact=merge,
-            **{k: v for k, v in _stage_inputs().items() if k != "merge_decision_artifact"},
+            **{
+                k: v
+                for k, v in _stage_inputs().items()
+                if k != "merge_decision_artifact"
+            },
         )
 
 
-def test_evidence_bundle_unsupported_model_version_fails_closed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_evidence_bundle_unsupported_model_version_fails_closed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     out = _materialize_artifacts(tmp_path)
     fake = write_fake_evidence_binary(tmp_path / "forge-evidence")
     monkeypatch.setenv("FORGE_EVIDENCE_BIN", str(fake))
@@ -265,7 +283,9 @@ def test_evidence_bundle_unsupported_model_version_fails_closed(tmp_path: Path, 
         )
 
 
-def test_evidence_bundle_evidence_cli_failure_fails_closed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_evidence_bundle_evidence_cli_failure_fails_closed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     out = _materialize_artifacts(tmp_path)
     fake = write_fake_evidence_binary(tmp_path / "forge-evidence")
     monkeypatch.setenv("FORGE_EVIDENCE_BIN", str(fake))

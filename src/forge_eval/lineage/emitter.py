@@ -35,8 +35,32 @@ def _ensure_sdk_on_path() -> None:
 
 _ensure_sdk_on_path()
 
-from forge_lineage_sdk import LineageClient, LocalOutcome  # noqa: E402
-from forge_lineage_sdk.builders import build_edge, build_envelope, build_node  # noqa: E402
+# ``forge_lineage_sdk`` is an optional ecosystem dependency (installed via the
+# ``lineage`` extra / a local editable checkout, not PyPI). Guard the import so
+# this module — and the wider package — remains importable without it; emission
+# fails closed with a clear error only when the SDK is actually exercised.
+try:
+    from forge_lineage_sdk import LineageClient, LocalOutcome  # noqa: E402
+    from forge_lineage_sdk.builders import (  # noqa: E402
+        build_edge,
+        build_envelope,
+        build_node,
+    )
+
+    _LINEAGE_SDK_IMPORT_ERROR: ImportError | None = None
+except ImportError as exc:  # pragma: no cover - exercised only without the SDK
+    LineageClient = LocalOutcome = None  # type: ignore[assignment,misc]
+    build_edge = build_envelope = build_node = None  # type: ignore[assignment]
+    _LINEAGE_SDK_IMPORT_ERROR = exc
+
+
+def _require_sdk() -> None:
+    """Fail closed with actionable guidance when the lineage SDK is absent."""
+    if _LINEAGE_SDK_IMPORT_ERROR is not None:
+        raise RuntimeError(
+            "forge_lineage_sdk is not installed; install the 'lineage' extra "
+            "(pip install -e '.[lineage]') or provide the ecosystem SDK checkout"
+        ) from _LINEAGE_SDK_IMPORT_ERROR
 
 
 @dataclass
@@ -68,6 +92,7 @@ class ForgeEvalLineageEmitter:
         base_url: str = "http://127.0.0.1:8005",
         writer_token: str = "local-forge-eval",
     ) -> "ForgeEvalLineageEmitter":
+        _require_sdk()
         client = LineageClient(
             base_url=base_url,
             writer_identity=cls.WRITER_IDENTITY,
@@ -213,12 +238,16 @@ class NullLineageEmitter:
     """
 
     def emit_run_and_bundle(self, **_kwargs: Any) -> LineageEmissionStatus:
-        return LineageEmissionStatus(outcome="lineage_missing", error="emitter_disabled")
+        return LineageEmissionStatus(
+            outcome="lineage_missing", error="emitter_disabled"
+        )
 
 
 def _bundle_identity(evidence_bundle: dict[str, Any]) -> tuple[str, str]:
     """Derive a stable id and content hash from the evidence-bundle artifact."""
-    canonical = json.dumps(evidence_bundle, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    canonical = json.dumps(
+        evidence_bundle, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
     digest = hashlib.sha256(canonical).hexdigest()
     bundle_id = (
         evidence_bundle.get("bundle_id")

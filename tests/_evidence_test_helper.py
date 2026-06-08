@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
-_FAKE_EVIDENCE_SOURCE = r'''#!/usr/bin/env python3
+_FAKE_EVIDENCE_SOURCE = r"""#!/usr/bin/env python3
 import hashlib
 import json
 import os
@@ -104,7 +103,7 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-'''
+"""
 
 
 def write_fake_evidence_binary(path: Path) -> Path:

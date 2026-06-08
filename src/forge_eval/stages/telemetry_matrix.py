@@ -6,7 +6,10 @@ from typing import Any
 from forge_eval.errors import StageError
 from forge_eval.services.k_eff import compute_global_k_eff
 from forge_eval.services.reviewer_health import build_reviewer_health
-from forge_eval.services.telemetry_builder import build_defect_catalog, build_matrix_rows
+from forge_eval.services.telemetry_builder import (
+    build_defect_catalog,
+    build_matrix_rows,
+)
 
 
 def run_stage(
@@ -43,7 +46,9 @@ def run_stage(
     reviewer_ids = {str(item["reviewer_id"]) for item in reviewer_entries}
     defects = build_defect_catalog(findings=findings, known_reviewer_ids=reviewer_ids)
 
-    reviewer_config_by_id = {str(item["reviewer_id"]): dict(item) for item in config_reviewers}
+    reviewer_config_by_id = {
+        str(item["reviewer_id"]): dict(item) for item in config_reviewers
+    }
     applicability_mode = str(config["telemetry_applicability_mode"])
     rows, cell_counts = build_matrix_rows(
         defects=defects,

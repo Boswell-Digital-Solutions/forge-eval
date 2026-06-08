@@ -82,7 +82,14 @@ def _validate_hazard_map_artifact(artifact: dict[str, Any]) -> None:
             stage="merge_decision",
             details={"run": run},
         )
-    for field in ("run_id", "repo_path", "base_ref", "head_ref", "base_commit", "head_commit"):
+    for field in (
+        "run_id",
+        "repo_path",
+        "base_ref",
+        "head_ref",
+        "base_commit",
+        "head_commit",
+    ):
         value = run.get(field)
         if not isinstance(value, str) or not value:
             raise StageError(
@@ -98,7 +105,13 @@ def _validate_hazard_map_artifact(artifact: dict[str, Any]) -> None:
             stage="merge_decision",
             details={"summary": summary},
         )
-    for field in ("hazard_score", "hazard_tier", "blocking_signals_present", "hidden_pressure", "uncertainty_flags"):
+    for field in (
+        "hazard_score",
+        "hazard_tier",
+        "blocking_signals_present",
+        "hidden_pressure",
+        "uncertainty_flags",
+    ):
         if field not in summary:
             raise StageError(
                 "hazard_map artifact summary missing required field",
@@ -126,12 +139,19 @@ def _validate_run_alignment(
         raise StageError(
             "hazard_map artifact repo_path does not match pipeline repo",
             stage="merge_decision",
-            details={"pipeline_repo_path": repo_resolved, "hazard_repo_path": hazard_run["repo_path"]},
+            details={
+                "pipeline_repo_path": repo_resolved,
+                "hazard_repo_path": hazard_run["repo_path"],
+            },
         )
     for field, expected in (("base_ref", base_ref), ("head_ref", head_ref)):
         if str(hazard_run[field]) != str(expected):
             raise StageError(
                 "hazard_map artifact ref does not match pipeline refs",
                 stage="merge_decision",
-                details={"field": field, "expected": expected, "actual": hazard_run[field]},
+                details={
+                    "field": field,
+                    "expected": expected,
+                    "actual": hazard_run[field],
+                },
             )

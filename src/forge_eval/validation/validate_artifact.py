@@ -21,9 +21,13 @@ def _format_error_path(path_parts: list[Any]) -> str:
     return rendered
 
 
-def validate_instance(instance: dict[str, Any], schema: dict[str, Any], *, artifact_kind: str) -> None:
+def validate_instance(
+    instance: dict[str, Any], schema: dict[str, Any], *, artifact_kind: str
+) -> None:
     validator = Draft202012Validator(schema)
-    errors = sorted(validator.iter_errors(instance), key=lambda e: (list(e.path), e.message))
+    errors = sorted(
+        validator.iter_errors(instance), key=lambda e: (list(e.path), e.message)
+    )
     if errors:
         details = [
             {
@@ -41,7 +45,9 @@ def validate_instance(instance: dict[str, Any], schema: dict[str, Any], *, artif
 def load_json_file(path: str | Path) -> dict[str, Any]:
     file_path = Path(path)
     if not file_path.exists():
-        raise ValidationError("artifact file is missing", details={"path": str(file_path)})
+        raise ValidationError(
+            "artifact file is missing", details={"path": str(file_path)}
+        )
     try:
         obj = json.loads(file_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
@@ -57,7 +63,9 @@ def load_json_file(path: str | Path) -> dict[str, Any]:
     return obj
 
 
-def validate_file(path: str | Path, schema: dict[str, Any], *, artifact_kind: str) -> dict[str, Any]:
+def validate_file(
+    path: str | Path, schema: dict[str, Any], *, artifact_kind: str
+) -> dict[str, Any]:
     obj = load_json_file(path)
     validate_instance(obj, schema, artifact_kind=artifact_kind)
     return obj

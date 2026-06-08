@@ -56,7 +56,9 @@ def _hazard_artifact(
             "hidden_uplift": 0.06,
             "uncertainty_uplift": 0.04,
             "blocking_signals_present": blocking_signals_present,
-            "blocking_reason_flags": ["hidden_pressure_on_high_risk_surface"] if blocking_signals_present else [],
+            "blocking_reason_flags": ["hidden_pressure_on_high_risk_surface"]
+            if blocking_signals_present
+            else [],
             "uncertainty_flags": list(uncertainty_flags or []),
         },
         "rows": [
@@ -114,7 +116,12 @@ def _hazard_artifact(
         "provenance": {
             "algorithm": "hazard_map_v1",
             "deterministic": True,
-            "inputs": ["risk_heatmap.json", "telemetry_matrix.json", "occupancy_snapshot.json", "capture_estimate.json"],
+            "inputs": [
+                "risk_heatmap.json",
+                "telemetry_matrix.json",
+                "occupancy_snapshot.json",
+                "capture_estimate.json",
+            ],
             "model_version": "hazard_rev1",
         },
     }

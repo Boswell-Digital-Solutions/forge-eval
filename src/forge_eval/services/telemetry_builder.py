@@ -100,7 +100,10 @@ def build_matrix_rows(
             raise StageError(
                 "defect references reviewers not present in reviewer roster",
                 stage="telemetry_matrix",
-                details={"defect_key": defect_key, "unknown_reporters": unknown_reporters},
+                details={
+                    "defect_key": defect_key,
+                    "unknown_reporters": unknown_reporters,
+                },
             )
 
         support_count = defect.get("support_count")
@@ -146,7 +149,9 @@ def build_matrix_rows(
                 else:
                     cell = 1 if reviewer_id in reported_by else 0
 
-            _validate_cell_value(cell=cell, reviewer_id=reviewer_id, defect_key=defect_key)
+            _validate_cell_value(
+                cell=cell, reviewer_id=reviewer_id, defect_key=defect_key
+            )
             observations[reviewer_id] = cell
             if cell is None:
                 cells_null += 1
@@ -197,7 +202,10 @@ def _validate_defect_compatibility(
     existing_severity = str(existing.get("severity", "")).strip()
 
     if existing_file_path != file_path:
-        mismatches["file_path"] = {"existing": existing_file_path, "incoming": file_path}
+        mismatches["file_path"] = {
+            "existing": existing_file_path,
+            "incoming": file_path,
+        }
     if existing_category != category:
         mismatches["category"] = {"existing": existing_category, "incoming": category}
     if existing_severity != severity:
@@ -211,7 +219,9 @@ def _validate_defect_compatibility(
         )
 
 
-def _validate_cell_value(*, cell: int | None, reviewer_id: str, defect_key: str) -> None:
+def _validate_cell_value(
+    *, cell: int | None, reviewer_id: str, defect_key: str
+) -> None:
     if cell in {0, 1, None}:
         return
     raise StageError(

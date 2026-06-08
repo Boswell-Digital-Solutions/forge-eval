@@ -492,7 +492,13 @@ def _capture_artifact_no_defects() -> dict[str, object]:
                 "sample_coverage": 1.0,
                 "formula_variant": "no_rare_rows",
                 "guard_applied": True,
-                "inputs": {"rare_count": 0, "frequent_count": 0, "q1": 0, "q2": 0, "gamma_sq": 0.0},
+                "inputs": {
+                    "rare_count": 0,
+                    "frequent_count": 0,
+                    "q1": 0,
+                    "q2": 0,
+                    "gamma_sq": 0.0,
+                },
             },
             "selected_method": "max_hidden",
             "selected_source": "tie",
@@ -539,7 +545,13 @@ def test_hazard_map_stage_emits_rows_summary_and_tier() -> None:
     assert out["artifact_version"] == 1
     assert len(out["rows"]) == 4
     assert 0.0 <= out["summary"]["hazard_score"] <= 1.0
-    assert out["summary"]["hazard_tier"] in {"low", "guarded", "elevated", "high", "critical"}
+    assert out["summary"]["hazard_tier"] in {
+        "low",
+        "guarded",
+        "elevated",
+        "high",
+        "critical",
+    }
     assert out["inputs"]["hidden_selection_policy"] == "max_hidden"
 
     rows = {row["defect_key"]: row for row in out["rows"]}
@@ -548,7 +560,10 @@ def test_hazard_map_stage_emits_rows_summary_and_tier() -> None:
     assert critical_row["hazard_contribution"] > medium_row["hazard_contribution"]
     assert "critical_severity" in critical_row["hazard_flags"]
     assert out["summary"]["defect_count"] == 4
-    assert out["summary"]["selected_hidden"] == _capture_artifact(cfg)["summary"]["selected_hidden"]
+    assert (
+        out["summary"]["selected_hidden"]
+        == _capture_artifact(cfg)["summary"]["selected_hidden"]
+    )
 
 
 def test_hazard_map_allows_zero_defect_rows_and_preserves_uncertainty() -> None:
@@ -595,7 +610,9 @@ def test_hazard_map_tier_mapping_thresholds(score: float, expected: str) -> None
 def test_hazard_map_missing_risk_mapping_fails_closed() -> None:
     cfg = normalize_config({})
     risk = _risk_artifact()
-    risk["targets"] = [target for target in risk["targets"] if target["file_path"] != "d.py"]
+    risk["targets"] = [
+        target for target in risk["targets"] if target["file_path"] != "d.py"
+    ]
 
     with pytest.raises(StageError):
         run_stage(

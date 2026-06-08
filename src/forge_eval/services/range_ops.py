@@ -4,7 +4,6 @@ from typing import Iterable
 
 from forge_eval.errors import StageError
 
-
 LineRange = tuple[int, int]
 
 
@@ -40,7 +39,9 @@ def clamp_range(rng: LineRange, *, min_line: int, max_line: int) -> LineRange:
     return (clamped_start, clamped_end)
 
 
-def merge_ranges(ranges: Iterable[LineRange], *, merge_gap_lines: int) -> list[LineRange]:
+def merge_ranges(
+    ranges: Iterable[LineRange], *, merge_gap_lines: int
+) -> list[LineRange]:
     if merge_gap_lines < 0:
         raise StageError(
             "merge_gap_lines cannot be negative",

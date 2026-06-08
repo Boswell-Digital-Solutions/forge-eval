@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from forge_eval.evidence_cli import EvidenceCli
 from forge_eval.errors import EvidenceCliError
+from forge_eval.evidence_cli import EvidenceCli
 
 
 def _write_executable(path: Path, content: str) -> None:
@@ -79,7 +79,9 @@ exit 7
 @pytest.mark.integration
 def test_evidence_wrapper_with_real_binary_if_available(tmp_path: Path) -> None:
     repo_root = Path(__file__).resolve().parents[1]
-    binary = repo_root / "rust" / "forge-evidence" / "target" / "debug" / "forge-evidence"
+    binary = (
+        repo_root / "rust" / "forge-evidence" / "target" / "debug" / "forge-evidence"
+    )
     if not binary.exists():
         pytest.skip("real forge-evidence binary not built")
 

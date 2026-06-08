@@ -22,8 +22,12 @@ def estimate_ice(
     )
 
     histogram = {int(freq): count for freq, count in incidence_histogram.items()}
-    rare_histogram = {freq: count for freq, count in histogram.items() if freq <= rare_threshold}
-    frequent_count = sum(count for freq, count in histogram.items() if freq > rare_threshold)
+    rare_histogram = {
+        freq: count for freq, count in histogram.items() if freq <= rare_threshold
+    }
+    frequent_count = sum(
+        count for freq, count in histogram.items() if freq > rare_threshold
+    )
     rare_count = sum(rare_histogram.values())
     rare_incidence_total = sum(freq * count for freq, count in rare_histogram.items())
     q1 = rare_histogram.get(1, 0)
@@ -79,12 +83,20 @@ def estimate_ice(
             },
         }
 
-    sum_i_i_minus_1_qi = sum(freq * (freq - 1) * count for freq, count in rare_histogram.items())
-    gamma_sq = ((rare_count / sample_coverage) * (sum_i_i_minus_1_qi / denominator)) - 1.0
+    sum_i_i_minus_1_qi = sum(
+        freq * (freq - 1) * count for freq, count in rare_histogram.items()
+    )
+    gamma_sq = (
+        (rare_count / sample_coverage) * (sum_i_i_minus_1_qi / denominator)
+    ) - 1.0
     if gamma_sq < 0.0:
         gamma_sq = 0.0
 
-    total = frequent_count + (rare_count / sample_coverage) + ((q1 / sample_coverage) * gamma_sq)
+    total = (
+        frequent_count
+        + (rare_count / sample_coverage)
+        + ((q1 / sample_coverage) * gamma_sq)
+    )
     hidden = max(total - observed, 0.0)
     _validate_number(hidden=hidden, total=total)
 
@@ -139,19 +151,32 @@ def _validate_inputs(
                 stage="capture_estimate",
                 details={"key": key, "value": value},
             )
-    if isinstance(rare_threshold, bool) or not isinstance(rare_threshold, int) or rare_threshold < 1:
+    if (
+        isinstance(rare_threshold, bool)
+        or not isinstance(rare_threshold, int)
+        or rare_threshold < 1
+    ):
         raise StageError(
             "ICE rare_threshold must be an integer >= 1",
             stage="capture_estimate",
             details={"rare_threshold": rare_threshold},
         )
-    if isinstance(fallback_hidden, bool) or not isinstance(fallback_hidden, (int, float)) or fallback_hidden < 0.0:
+    if (
+        isinstance(fallback_hidden, bool)
+        or not isinstance(fallback_hidden, (int, float))
+        or fallback_hidden < 0.0
+    ):
         raise StageError(
             "ICE fallback_hidden must be a non-negative number",
             stage="capture_estimate",
             details={"fallback_hidden": fallback_hidden},
         )
-    if isinstance(round_digits, bool) or not isinstance(round_digits, int) or round_digits < 0 or round_digits > 12:
+    if (
+        isinstance(round_digits, bool)
+        or not isinstance(round_digits, int)
+        or round_digits < 0
+        or round_digits > 12
+    ):
         raise StageError(
             "ICE round_digits must be an integer in [0, 12]",
             stage="capture_estimate",

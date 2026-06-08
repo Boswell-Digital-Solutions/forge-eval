@@ -25,13 +25,9 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 enum Commands {
     /// Canonicalize a JSON file into deterministic compact JSON.
-    Canonicalize {
-        input: PathBuf,
-    },
+    Canonicalize { input: PathBuf },
     /// Compute SHA-256 digest hex for any input file.
-    Sha256 {
-        input: PathBuf,
-    },
+    Sha256 { input: PathBuf },
     /// Compute deterministic artifact-id for a JSON artifact.
     ArtifactId {
         input: PathBuf,
@@ -39,9 +35,7 @@ enum Commands {
         kind: String,
     },
     /// Compute hashchain from a directory or manifest JSON file.
-    Hashchain {
-        input: PathBuf,
-    },
+    Hashchain { input: PathBuf },
 }
 
 fn run() -> Result<()> {

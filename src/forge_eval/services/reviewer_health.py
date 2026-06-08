@@ -48,7 +48,9 @@ def build_reviewer_health(
             )
 
         kind = _required_str(reviewer, "kind", stage="telemetry_matrix")
-        slices_seen = _required_int(reviewer, "slices_seen", stage="telemetry_matrix", min_value=0)
+        slices_seen = _required_int(
+            reviewer, "slices_seen", stage="telemetry_matrix", min_value=0
+        )
         findings_emitted = _required_int(
             reviewer,
             "findings_emitted",

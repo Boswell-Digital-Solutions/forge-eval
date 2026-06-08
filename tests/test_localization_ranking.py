@@ -11,16 +11,22 @@ from forge_eval.services.localization_ranker import rank_candidates
 from forge_eval.services.review_scope_compiler import compile_review_scope
 from forge_eval.stages.localization_pack import run_stage
 
-
 SCHEMA_DIR = Path(__file__).resolve().parent.parent / "src" / "forge_eval" / "schemas"
 
 
 def _config(**overrides) -> dict:
     raw = {
         "enabled_stages": [
-            "risk_heatmap", "context_slices", "review_findings",
-            "telemetry_matrix", "occupancy_snapshot", "capture_estimate",
-            "hazard_map", "merge_decision", "evidence_bundle", "localization_pack",
+            "risk_heatmap",
+            "context_slices",
+            "review_findings",
+            "telemetry_matrix",
+            "occupancy_snapshot",
+            "capture_estimate",
+            "hazard_map",
+            "merge_decision",
+            "evidence_bundle",
+            "localization_pack",
         ],
     }
     raw.update(overrides)
@@ -32,76 +38,99 @@ def _make_context_slices(file_slices: dict[str, list[tuple[int, int]]]) -> dict:
     idx = 0
     for fp, ranges in sorted(file_slices.items()):
         for start, end in ranges:
-            slices.append({
-                "slice_id": f"slice_{idx}",
-                "file_path": fp,
-                "start_line": start,
-                "end_line": end,
-                "content": "# test",
-                "context_radius": 12,
-            })
+            slices.append(
+                {
+                    "slice_id": f"slice_{idx}",
+                    "file_path": fp,
+                    "start_line": start,
+                    "end_line": end,
+                    "content": "# test",
+                    "context_radius": 12,
+                }
+            )
             idx += 1
-    return {"artifact_version": 1, "kind": "context_slices", "run_id": "run1", "slices": slices}
+    return {
+        "artifact_version": 1,
+        "kind": "context_slices",
+        "run_id": "run1",
+        "slices": slices,
+    }
 
 
 def _make_review_findings(findings_data: list[dict]) -> dict:
     findings = []
     for fd in findings_data:
-        findings.append({
-            "defect_key": fd.get("defect_key", f"dfk_{'0' * 64}"),
-            "file_path": fd["file_path"],
-            "line": fd.get("line", 5),
-            "category": fd.get("category", "correctness"),
-            "severity": fd.get("severity", "medium"),
-            "reviewer_id": fd.get("reviewer_id", "r1"),
-            "message": "test",
-            "confidence": 0.8,
-        })
-    return {"artifact_version": 1, "kind": "review_findings", "run_id": "run1", "findings": findings}
+        findings.append(
+            {
+                "defect_key": fd.get("defect_key", f"dfk_{'0' * 64}"),
+                "file_path": fd["file_path"],
+                "line": fd.get("line", 5),
+                "category": fd.get("category", "correctness"),
+                "severity": fd.get("severity", "medium"),
+                "reviewer_id": fd.get("reviewer_id", "r1"),
+                "message": "test",
+                "confidence": 0.8,
+            }
+        )
+    return {
+        "artifact_version": 1,
+        "kind": "review_findings",
+        "run_id": "run1",
+        "findings": findings,
+    }
 
 
 def _make_telemetry_matrix(rows_data: list[dict]) -> dict:
     rows = []
     for rd in rows_data:
-        rows.append({
-            "defect_key": rd.get("defect_key", f"dfk_{'0' * 64}"),
-            "file_path": rd["file_path"],
-            "line": rd.get("line", 5),
-            "category": "correctness",
-            "severity": "medium",
-            "reported_by": ["r1"],
-            "support_count": rd.get("support_count", 1),
-            "observed_by": 1,
-            "missed_by": 0,
-            "null_by": 0,
-            "k_eff_defect": 1,
-        })
-    return {"artifact_version": 1, "kind": "telemetry_matrix", "run_id": "run1", "rows": rows}
+        rows.append(
+            {
+                "defect_key": rd.get("defect_key", f"dfk_{'0' * 64}"),
+                "file_path": rd["file_path"],
+                "line": rd.get("line", 5),
+                "category": "correctness",
+                "severity": "medium",
+                "reported_by": ["r1"],
+                "support_count": rd.get("support_count", 1),
+                "observed_by": 1,
+                "missed_by": 0,
+                "null_by": 0,
+                "k_eff_defect": 1,
+            }
+        )
+    return {
+        "artifact_version": 1,
+        "kind": "telemetry_matrix",
+        "run_id": "run1",
+        "rows": rows,
+    }
 
 
 def _make_hazard_map(rows_data: list[dict], hazard_tier: str = "elevated") -> dict:
     rows = []
     for rd in rows_data:
-        rows.append({
-            "defect_key": rd.get("defect_key", f"dfk_{'0' * 64}"),
-            "file_path": rd["file_path"],
-            "category": "correctness",
-            "severity": "medium",
-            "reported_by": ["r1"],
-            "support_count": 1,
-            "observed_by": 1,
-            "missed_by": 0,
-            "null_by": 0,
-            "k_eff_defect": 1,
-            "psi_post": 0.5,
-            "local_risk_score": 0.8,
-            "severity_weight": 0.5,
-            "occupancy_uplift": 0.1,
-            "structural_risk_uplift": 0.1,
-            "support_uplift": 0.1,
-            "hazard_contribution": rd.get("hazard_contribution", 0.5),
-            "hazard_flags": [],
-        })
+        rows.append(
+            {
+                "defect_key": rd.get("defect_key", f"dfk_{'0' * 64}"),
+                "file_path": rd["file_path"],
+                "category": "correctness",
+                "severity": "medium",
+                "reported_by": ["r1"],
+                "support_count": 1,
+                "observed_by": 1,
+                "missed_by": 0,
+                "null_by": 0,
+                "k_eff_defect": 1,
+                "psi_post": 0.5,
+                "local_risk_score": 0.8,
+                "severity_weight": 0.5,
+                "occupancy_uplift": 0.1,
+                "structural_risk_uplift": 0.1,
+                "support_uplift": 0.1,
+                "hazard_contribution": rd.get("hazard_contribution", 0.5),
+                "hazard_flags": [],
+            }
+        )
     return {
         "artifact_version": 1,
         "kind": "hazard_map",
@@ -130,25 +159,34 @@ def _make_hazard_map(rows_data: list[dict], hazard_tier: str = "elevated") -> di
 
 # ===== Test 1: File ranking deterministic order =====
 
+
 def test_file_ranking_deterministic():
     config = _config()
-    ctx = _make_context_slices({
-        "src/a.py": [(1, 10), (11, 20)],
-        "src/b.py": [(1, 10)],
-    })
-    findings = _make_review_findings([
-        {"file_path": "src/a.py", "defect_key": f"dfk_{'a' * 64}", "line": 5},
-        {"file_path": "src/a.py", "defect_key": f"dfk_{'b' * 64}", "line": 15},
-        {"file_path": "src/b.py", "defect_key": f"dfk_{'c' * 64}", "line": 5},
-    ])
-    telemetry = _make_telemetry_matrix([
-        {"file_path": "src/a.py", "support_count": 3},
-        {"file_path": "src/b.py", "support_count": 1},
-    ])
-    hazard = _make_hazard_map([
-        {"file_path": "src/a.py", "hazard_contribution": 0.8},
-        {"file_path": "src/b.py", "hazard_contribution": 0.3},
-    ])
+    ctx = _make_context_slices(
+        {
+            "src/a.py": [(1, 10), (11, 20)],
+            "src/b.py": [(1, 10)],
+        }
+    )
+    findings = _make_review_findings(
+        [
+            {"file_path": "src/a.py", "defect_key": f"dfk_{'a' * 64}", "line": 5},
+            {"file_path": "src/a.py", "defect_key": f"dfk_{'b' * 64}", "line": 15},
+            {"file_path": "src/b.py", "defect_key": f"dfk_{'c' * 64}", "line": 5},
+        ]
+    )
+    telemetry = _make_telemetry_matrix(
+        [
+            {"file_path": "src/a.py", "support_count": 3},
+            {"file_path": "src/b.py", "support_count": 1},
+        ]
+    )
+    hazard = _make_hazard_map(
+        [
+            {"file_path": "src/a.py", "hazard_contribution": 0.8},
+            {"file_path": "src/b.py", "hazard_contribution": 0.3},
+        ]
+    )
 
     fc, bc = rank_candidates(
         config=config,
@@ -163,21 +201,30 @@ def test_file_ranking_deterministic():
 
 # ===== Test 2: Block ranking deterministic order =====
 
+
 def test_block_ranking_deterministic():
     config = _config()
-    ctx = _make_context_slices({
-        "src/main.py": [(1, 10), (20, 30)],
-    })
-    findings = _make_review_findings([
-        {"file_path": "src/main.py", "defect_key": f"dfk_{'a' * 64}", "line": 5},
-        {"file_path": "src/main.py", "defect_key": f"dfk_{'b' * 64}", "line": 5},
-    ])
-    telemetry = _make_telemetry_matrix([
-        {"file_path": "src/main.py", "support_count": 3, "line": 5},
-    ])
-    hazard = _make_hazard_map([
-        {"file_path": "src/main.py", "hazard_contribution": 0.7},
-    ])
+    ctx = _make_context_slices(
+        {
+            "src/main.py": [(1, 10), (20, 30)],
+        }
+    )
+    findings = _make_review_findings(
+        [
+            {"file_path": "src/main.py", "defect_key": f"dfk_{'a' * 64}", "line": 5},
+            {"file_path": "src/main.py", "defect_key": f"dfk_{'b' * 64}", "line": 5},
+        ]
+    )
+    telemetry = _make_telemetry_matrix(
+        [
+            {"file_path": "src/main.py", "support_count": 3, "line": 5},
+        ]
+    )
+    hazard = _make_hazard_map(
+        [
+            {"file_path": "src/main.py", "hazard_contribution": 0.7},
+        ]
+    )
 
     fc, bc = rank_candidates(
         config=config,
@@ -192,12 +239,15 @@ def test_block_ranking_deterministic():
 
 # ===== Test 3: Tie-breaking stable =====
 
+
 def test_tiebreaking_stable():
     config = _config()
-    ctx = _make_context_slices({
-        "src/b.py": [(1, 10)],
-        "src/a.py": [(1, 10)],
-    })
+    ctx = _make_context_slices(
+        {
+            "src/b.py": [(1, 10)],
+            "src/a.py": [(1, 10)],
+        }
+    )
     findings = _make_review_findings([])
     telemetry = _make_telemetry_matrix([])
     hazard = _make_hazard_map([])
@@ -215,8 +265,11 @@ def test_tiebreaking_stable():
 
 # ===== Test 4: Truncation to max candidates =====
 
+
 def test_truncation_to_max_candidates():
-    config = _config(localization_max_file_candidates=2, localization_max_block_candidates=3)
+    config = _config(
+        localization_max_file_candidates=2, localization_max_block_candidates=3
+    )
     file_slices = {f"src/f{i}.py": [(1, 10)] for i in range(5)}
     ctx = _make_context_slices(file_slices)
     findings = _make_review_findings([])
@@ -236,26 +289,40 @@ def test_truncation_to_max_candidates():
 
 # ===== Test 5: summary_confidence = min of block confidences =====
 
+
 def test_summary_confidence_is_min():
     config = _config()
-    ctx = _make_context_slices({
-        "src/a.py": [(1, 10)],
-        "src/b.py": [(1, 10)],
-    })
-    findings = _make_review_findings([
-        {"file_path": "src/a.py", "defect_key": f"dfk_{'a' * 64}", "line": 5},
-    ])
-    telemetry = _make_telemetry_matrix([
-        {"file_path": "src/a.py", "support_count": 5},
-    ])
-    hazard = _make_hazard_map([
-        {"file_path": "src/a.py", "hazard_contribution": 0.8},
-    ])
+    ctx = _make_context_slices(
+        {
+            "src/a.py": [(1, 10)],
+            "src/b.py": [(1, 10)],
+        }
+    )
+    findings = _make_review_findings(
+        [
+            {"file_path": "src/a.py", "defect_key": f"dfk_{'a' * 64}", "line": 5},
+        ]
+    )
+    telemetry = _make_telemetry_matrix(
+        [
+            {"file_path": "src/a.py", "support_count": 5},
+        ]
+    )
+    hazard = _make_hazard_map(
+        [
+            {"file_path": "src/a.py", "hazard_contribution": 0.8},
+        ]
+    )
 
     result = run_stage(
         run_id="run1",
         config=config,
-        risk_heatmap_artifact={"artifact_version": 1, "kind": "risk_heatmap", "run_id": "run1", "targets": []},
+        risk_heatmap_artifact={
+            "artifact_version": 1,
+            "kind": "risk_heatmap",
+            "run_id": "run1",
+            "targets": [],
+        },
         context_slices_artifact=ctx,
         review_findings_artifact=findings,
         telemetry_matrix_artifact=telemetry,
@@ -266,6 +333,7 @@ def test_summary_confidence_is_min():
 
 
 # ===== Test 6: Review scope merges overlapping ranges =====
+
 
 def test_review_scope_merges_overlapping():
     blocks = [
@@ -284,6 +352,7 @@ def test_review_scope_merges_overlapping():
 
 # ===== Test 7: Review scope clamps to max_review_scope_lines =====
 
+
 def test_review_scope_clamps_to_max():
     blocks = [
         {"file_path": "src/main.py", "start_line": 1, "end_line": 100},
@@ -296,6 +365,7 @@ def test_review_scope_clamps_to_max():
 
 # ===== Test 8: Review scope fails closed on empty candidates =====
 
+
 def test_review_scope_fails_on_empty():
     config = _config()
     with pytest.raises(StageError, match="no block candidates"):
@@ -304,8 +374,10 @@ def test_review_scope_fails_on_empty():
 
 # ===== Test 9: Patch target intersection constrains scope (placeholder for Slice 3) =====
 
+
 def test_patch_scope_passthrough():
     from forge_eval.services.patch_scope_builder import build_patch_scope
+
     config = _config()
     result = build_patch_scope(config=config)
     assert result == []
@@ -313,8 +385,10 @@ def test_patch_scope_passthrough():
 
 # ===== Test 10: No patch targets -> empty scope =====
 
+
 def test_no_patch_targets_empty_scope():
     from forge_eval.services.patch_scope_builder import build_patch_scope
+
     config = _config()
     result = build_patch_scope(config=config, patch_targets_artifact=None)
     assert result == []
@@ -323,25 +397,39 @@ def test_no_patch_targets_empty_scope():
 
 # ===== Test 11: Golden artifact determinism =====
 
+
 def test_golden_artifact_determinism():
     config = _config()
-    ctx = _make_context_slices({
-        "src/a.py": [(1, 10), (20, 30)],
-        "src/b.py": [(1, 15)],
-    })
-    findings = _make_review_findings([
-        {"file_path": "src/a.py", "defect_key": f"dfk_{'a' * 64}", "line": 5},
-        {"file_path": "src/b.py", "defect_key": f"dfk_{'b' * 64}", "line": 10},
-    ])
-    telemetry = _make_telemetry_matrix([
-        {"file_path": "src/a.py", "support_count": 2},
-        {"file_path": "src/b.py", "support_count": 1},
-    ])
-    hazard = _make_hazard_map([
-        {"file_path": "src/a.py", "hazard_contribution": 0.6},
-        {"file_path": "src/b.py", "hazard_contribution": 0.3},
-    ])
-    risk = {"artifact_version": 1, "kind": "risk_heatmap", "run_id": "run1", "targets": []}
+    ctx = _make_context_slices(
+        {
+            "src/a.py": [(1, 10), (20, 30)],
+            "src/b.py": [(1, 15)],
+        }
+    )
+    findings = _make_review_findings(
+        [
+            {"file_path": "src/a.py", "defect_key": f"dfk_{'a' * 64}", "line": 5},
+            {"file_path": "src/b.py", "defect_key": f"dfk_{'b' * 64}", "line": 10},
+        ]
+    )
+    telemetry = _make_telemetry_matrix(
+        [
+            {"file_path": "src/a.py", "support_count": 2},
+            {"file_path": "src/b.py", "support_count": 1},
+        ]
+    )
+    hazard = _make_hazard_map(
+        [
+            {"file_path": "src/a.py", "hazard_contribution": 0.6},
+            {"file_path": "src/b.py", "hazard_contribution": 0.3},
+        ]
+    )
+    risk = {
+        "artifact_version": 1,
+        "kind": "risk_heatmap",
+        "run_id": "run1",
+        "targets": [],
+    }
 
     kwargs = dict(
         run_id="run1",

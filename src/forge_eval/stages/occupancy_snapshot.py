@@ -51,7 +51,9 @@ def run_stage(
             details={"occupancy_round_digits": round_digits},
         )
 
-    summary = build_summary(rows=rows, global_k_eff=global_k_eff, round_digits=round_digits)
+    summary = build_summary(
+        rows=rows, global_k_eff=global_k_eff, round_digits=round_digits
+    )
 
     repo = Path(repo_path)
     run_payload = {
@@ -79,9 +81,15 @@ def run_stage(
             "parameters": {
                 "occupancy_prior_base": config["occupancy_prior_base"],
                 "occupancy_support_uplift": config["occupancy_support_uplift"],
-                "occupancy_detection_assumption": config["occupancy_detection_assumption"],
-                "occupancy_miss_penalty_strength": config["occupancy_miss_penalty_strength"],
-                "occupancy_null_uncertainty_boost": config["occupancy_null_uncertainty_boost"],
+                "occupancy_detection_assumption": config[
+                    "occupancy_detection_assumption"
+                ],
+                "occupancy_miss_penalty_strength": config[
+                    "occupancy_miss_penalty_strength"
+                ],
+                "occupancy_null_uncertainty_boost": config[
+                    "occupancy_null_uncertainty_boost"
+                ],
                 "occupancy_round_digits": config["occupancy_round_digits"],
                 "severity_uplift": dict(SEVERITY_UPLIFT),
             },

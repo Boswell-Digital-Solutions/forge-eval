@@ -15,7 +15,12 @@ def build_capture_summary(
     included_rows: list[dict[str, Any]],
     round_digits: int,
 ) -> dict[str, Any]:
-    if isinstance(round_digits, bool) or not isinstance(round_digits, int) or round_digits < 0 or round_digits > 12:
+    if (
+        isinstance(round_digits, bool)
+        or not isinstance(round_digits, int)
+        or round_digits < 0
+        or round_digits > 12
+    ):
         raise StageError(
             "capture summary round_digits must be an integer in [0, 12]",
             stage="capture_estimate",
@@ -58,8 +63,14 @@ def build_capture_summary(
     sparse_data = included_count < 5 or global_k_eff < 2 or f1 > f2
     low_doubleton_support = f2 == 0
     ice_low_coverage = sample_coverage < 0.5
-    chao2_guard = any(chao2.get("guard_flags", {}).values()) if chao2.get("available") else False
-    estimator_guard_applied = bool(chao1.get("guard_applied")) or chao2_guard or bool(ice.get("guard_applied"))
+    chao2_guard = (
+        any(chao2.get("guard_flags", {}).values()) if chao2.get("available") else False
+    )
+    estimator_guard_applied = (
+        bool(chao1.get("guard_applied"))
+        or chao2_guard
+        or bool(ice.get("guard_applied"))
+    )
 
     unavailable_estimators = selection.get("unavailable_estimators", [])
 
@@ -110,7 +121,11 @@ def _required_unit_number(obj: dict[str, Any], key: str) -> float:
 
 def _required_non_negative_number(obj: dict[str, Any], key: str) -> float:
     value = obj.get(key)
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or float(value) < 0.0:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or float(value) < 0.0
+    ):
         raise StageError(
             "capture summary requires non-negative numeric field",
             stage="capture_estimate",

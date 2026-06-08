@@ -8,18 +8,26 @@ from pathlib import Path
 from forge_eval.centipede_runner import run_centipede_pipeline
 from forge_eval.config import load_config
 from forge_eval.errors import ForgeEvalError
-from forge_eval.stage_runner import run_pipeline, stable_json_dumps, validate_artifacts_directory
+from forge_eval.stage_runner import (
+    run_pipeline,
+    stable_json_dumps,
+    validate_artifacts_directory,
+)
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="forge-eval", description="Deterministic Forge eval loop")
+    parser = argparse.ArgumentParser(
+        prog="forge-eval", description="Deterministic Forge eval loop"
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     run_parser = subparsers.add_parser("run", help="run enabled stages")
     run_parser.add_argument("--repo", required=True, help="repository path")
     run_parser.add_argument("--base", required=True, help="base git ref")
     run_parser.add_argument("--head", required=True, help="head git ref")
-    run_parser.add_argument("--config", required=False, help="config path (.json/.yaml/.yml)")
+    run_parser.add_argument(
+        "--config", required=False, help="config path (.json/.yaml/.yml)"
+    )
     run_parser.add_argument("--out", required=True, help="output artifacts directory")
 
     centipede_parser = subparsers.add_parser(
@@ -31,11 +39,17 @@ def _build_parser() -> argparse.ArgumentParser:
         required=True,
         help="ForgeEvalCentipedeInput.v1 JSON input contract path",
     )
-    centipede_parser.add_argument("--config", required=False, help="config path (.json/.yaml/.yml)")
-    centipede_parser.add_argument("--out", required=True, help="output artifacts directory")
+    centipede_parser.add_argument(
+        "--config", required=False, help="config path (.json/.yaml/.yml)"
+    )
+    centipede_parser.add_argument(
+        "--out", required=True, help="output artifacts directory"
+    )
 
     validate_parser = subparsers.add_parser("validate", help="validate artifacts")
-    validate_parser.add_argument("--artifacts", required=True, help="artifacts directory")
+    validate_parser.add_argument(
+        "--artifacts", required=True, help="artifacts directory"
+    )
 
     return parser
 
@@ -49,7 +63,10 @@ def _print_error(err: ForgeEvalError) -> None:
         "status": "error",
         "error": err.to_dict(),
     }
-    sys.stderr.write(json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n")
+    sys.stderr.write(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+        + "\n"
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -80,7 +97,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         if args.command == "validate":
-            result = validate_artifacts_directory(artifacts_dir=Path(args.artifacts).resolve())
+            result = validate_artifacts_directory(
+                artifacts_dir=Path(args.artifacts).resolve()
+            )
             _print_json({"status": "ok", "result": result})
             return 0
 

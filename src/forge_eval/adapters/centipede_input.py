@@ -44,7 +44,9 @@ _ALLOWED_TOP_LEVEL_KEYS = {
 
 def _load_json_object(path: Path) -> dict[str, Any]:
     if not path.exists():
-        raise ValidationError("centipede input file does not exist", details={"path": str(path)})
+        raise ValidationError(
+            "centipede input file does not exist", details={"path": str(path)}
+        )
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
@@ -53,14 +55,18 @@ def _load_json_object(path: Path) -> dict[str, Any]:
             details={"path": str(path), "error": str(exc)},
         ) from exc
     if not isinstance(value, dict):
-        raise ValidationError("centipede input root must be an object", details={"path": str(path)})
+        raise ValidationError(
+            "centipede input root must be an object", details={"path": str(path)}
+        )
     return value
 
 
 def _required_non_empty_string(obj: dict[str, Any], key: str) -> str:
     value = obj.get(key)
     if not isinstance(value, str) or not value.strip():
-        raise ValidationError("centipede input field must be a non-empty string", details={"field": key})
+        raise ValidationError(
+            "centipede input field must be a non-empty string", details={"field": key}
+        )
     return value.strip()
 
 
@@ -106,7 +112,9 @@ def _parse_target_ref(value: Any, *, target_index: int) -> CentipedeTargetRef:
         if key in value:
             file_path_value = value[key]
             break
-    file_path = _normalize_repo_relative_path(file_path_value, target_index=target_index)
+    file_path = _normalize_repo_relative_path(
+        file_path_value, target_index=target_index
+    )
 
     raw_target_id = value.get("target_id", f"file:{file_path}")
     if not isinstance(raw_target_id, str) or not raw_target_id.strip():
@@ -135,7 +143,9 @@ def load_centipede_input(input_path: str | Path) -> CentipedeInput:
 
     unknown = sorted(set(obj.keys()) - _ALLOWED_TOP_LEVEL_KEYS)
     if unknown:
-        raise ValidationError("centipede input has unknown top-level keys", details={"keys": unknown})
+        raise ValidationError(
+            "centipede input has unknown top-level keys", details={"keys": unknown}
+        )
 
     schema_version = _required_non_empty_string(obj, "schema_version")
     if schema_version != CENTIPEDE_INPUT_SCHEMA_VERSION:
@@ -174,7 +184,9 @@ def load_centipede_input(input_path: str | Path) -> CentipedeInput:
 
     metadata = obj.get("metadata", {})
     if not isinstance(metadata, dict):
-        raise ValidationError("centipede input metadata must be an object when provided")
+        raise ValidationError(
+            "centipede input metadata must be an object when provided"
+        )
 
     return CentipedeInput(
         schema_version=schema_version,

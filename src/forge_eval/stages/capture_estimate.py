@@ -27,7 +27,9 @@ def run_stage(
 
     telemetry_run = telemetry_matrix_artifact["run"]
     occupancy_run = occupancy_snapshot_artifact["run"]
-    _validate_run_alignment(run_id=run_id, telemetry_run=telemetry_run, occupancy_run=occupancy_run)
+    _validate_run_alignment(
+        run_id=run_id, telemetry_run=telemetry_run, occupancy_run=occupancy_run
+    )
 
     round_digits = _required_round_digits(config)
     counts_result = build_capture_counts(
@@ -179,7 +181,9 @@ def _validate_run_alignment(
     telemetry_run: dict[str, Any],
     occupancy_run: dict[str, Any],
 ) -> None:
-    if str(telemetry_run["run_id"]) != str(run_id) or str(occupancy_run["run_id"]) != str(run_id):
+    if str(telemetry_run["run_id"]) != str(run_id) or str(
+        occupancy_run["run_id"]
+    ) != str(run_id):
         raise StageError(
             "run_id mismatch across pipeline, telemetry, and occupancy artifacts",
             stage="capture_estimate",

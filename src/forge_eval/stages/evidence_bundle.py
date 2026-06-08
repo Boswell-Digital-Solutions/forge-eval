@@ -3,12 +3,14 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from forge_eval.evidence_cli import EvidenceCli
 from forge_eval.errors import StageError
-from forge_eval.services.evidence_bundle_manifest import build_evidence_manifest, required_bundle_artifacts
+from forge_eval.evidence_cli import EvidenceCli
+from forge_eval.services.evidence_bundle_manifest import (
+    build_evidence_manifest,
+    required_bundle_artifacts,
+)
 from forge_eval.services.evidence_bundle_model import load_evidence_bundle_model
 from forge_eval.services.evidence_bundle_summary import build_evidence_bundle_summary
-
 
 _REQUIRED_KINDS = {
     "risk_heatmap": "risk_heatmap",
@@ -70,7 +72,9 @@ def run_stage(
     )
 
     evidence_cli = EvidenceCli()
-    artifacts, manifest = build_evidence_manifest(artifacts_dir=out_dir, evidence_cli=evidence_cli)
+    artifacts, manifest = build_evidence_manifest(
+        artifacts_dir=out_dir, evidence_cli=evidence_cli
+    )
     decision, summary = build_evidence_bundle_summary(
         artifacts=artifacts,
         merge_decision_artifact=merge_decision_artifact,
@@ -111,7 +115,14 @@ def run_stage(
     }
 
 
-def _validate_resolved_config(*, resolved_config_artifact: dict[str, Any], run_id: str, repo_path: Path, base_ref: str, head_ref: str) -> None:
+def _validate_resolved_config(
+    *,
+    resolved_config_artifact: dict[str, Any],
+    run_id: str,
+    repo_path: Path,
+    base_ref: str,
+    head_ref: str,
+) -> None:
     if resolved_config_artifact.get("kind") != "config_resolved":
         raise StageError(
             "evidence_bundle requires config_resolved artifact",
@@ -122,20 +133,30 @@ def _validate_resolved_config(*, resolved_config_artifact: dict[str, Any], run_i
         raise StageError(
             "run_id mismatch between pipeline and config.resolved artifact",
             stage="evidence_bundle",
-            details={"pipeline_run_id": run_id, "config_run_id": resolved_config_artifact.get("run_id")},
+            details={
+                "pipeline_run_id": run_id,
+                "config_run_id": resolved_config_artifact.get("run_id"),
+            },
         )
     if str(resolved_config_artifact.get("repo_path")) != str(repo_path.resolve()):
         raise StageError(
             "config.resolved repo_path does not match pipeline repo",
             stage="evidence_bundle",
-            details={"pipeline_repo_path": str(repo_path.resolve()), "config_repo_path": resolved_config_artifact.get("repo_path")},
+            details={
+                "pipeline_repo_path": str(repo_path.resolve()),
+                "config_repo_path": resolved_config_artifact.get("repo_path"),
+            },
         )
     for field, expected in (("base_ref", base_ref), ("head_ref", head_ref)):
         if str(resolved_config_artifact.get(field)) != str(expected):
             raise StageError(
                 "config.resolved ref does not match pipeline refs",
                 stage="evidence_bundle",
-                details={"field": field, "expected": expected, "actual": resolved_config_artifact.get(field)},
+                details={
+                    "field": field,
+                    "expected": expected,
+                    "actual": resolved_config_artifact.get(field),
+                },
             )
 
 
@@ -146,7 +167,10 @@ def _validate_required_artifact_kinds(**artifacts: dict[str, dict[str, Any]]) ->
             raise StageError(
                 "evidence_bundle upstream artifact kind mismatch",
                 stage="evidence_bundle",
-                details={"expected_kind": expected, "actual_kind": artifact.get("kind")},
+                details={
+                    "expected_kind": expected,
+                    "actual_kind": artifact.get("kind"),
+                },
             )
 
 
@@ -158,7 +182,14 @@ def _extract_run_section(merge_decision_artifact: dict[str, Any]) -> dict[str, A
             stage="evidence_bundle",
             details={"run": run},
         )
-    for field in ("run_id", "repo_path", "base_ref", "head_ref", "base_commit", "head_commit"):
+    for field in (
+        "run_id",
+        "repo_path",
+        "base_ref",
+        "head_ref",
+        "base_commit",
+        "head_commit",
+    ):
         value = run.get(field)
         if not isinstance(value, str) or not value:
             raise StageError(
@@ -169,7 +200,14 @@ def _extract_run_section(merge_decision_artifact: dict[str, Any]) -> dict[str, A
     return run
 
 
-def _validate_run_alignment(*, run_id: str, repo_path: Path, base_ref: str, head_ref: str, merge_run: dict[str, Any]) -> None:
+def _validate_run_alignment(
+    *,
+    run_id: str,
+    repo_path: Path,
+    base_ref: str,
+    head_ref: str,
+    merge_run: dict[str, Any],
+) -> None:
     if str(merge_run["run_id"]) != str(run_id):
         raise StageError(
             "run_id mismatch between pipeline and merge_decision artifact",
@@ -180,12 +218,19 @@ def _validate_run_alignment(*, run_id: str, repo_path: Path, base_ref: str, head
         raise StageError(
             "merge_decision artifact repo_path does not match pipeline repo",
             stage="evidence_bundle",
-            details={"pipeline_repo_path": str(repo_path.resolve()), "merge_repo_path": merge_run["repo_path"]},
+            details={
+                "pipeline_repo_path": str(repo_path.resolve()),
+                "merge_repo_path": merge_run["repo_path"],
+            },
         )
     for field, expected in (("base_ref", base_ref), ("head_ref", head_ref)):
         if str(merge_run[field]) != str(expected):
             raise StageError(
                 "merge_decision artifact ref does not match pipeline refs",
                 stage="evidence_bundle",
-                details={"field": field, "expected": expected, "actual": merge_run[field]},
+                details={
+                    "field": field,
+                    "expected": expected,
+                    "actual": merge_run[field],
+                },
             )

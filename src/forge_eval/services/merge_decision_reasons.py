@@ -4,7 +4,6 @@ from typing import Any
 
 from forge_eval.errors import StageError
 
-
 BLOCK_REASON_ORDER = (
     "HAZARD_BLOCKING_SIGNAL_PRESENT",
     "HAZARD_TIER_CRITICAL",
@@ -33,14 +32,20 @@ def build_merge_decision_reasons(
     uncertainty_flags = _required_string_list(summary, "uncertainty_flags")
 
     parameters = _required_object(model, "parameters")
-    caution_threshold = _required_unit_number(parameters, "merge_decision_caution_threshold")
-    block_threshold = _required_unit_number(parameters, "merge_decision_block_threshold")
+    caution_threshold = _required_unit_number(
+        parameters, "merge_decision_caution_threshold"
+    )
+    block_threshold = _required_unit_number(
+        parameters, "merge_decision_block_threshold"
+    )
     block_on_signals = parameters.get("merge_decision_block_on_hazard_blocking_signals")
     if not isinstance(block_on_signals, bool):
         raise StageError(
             "merge decision model blocking-signal policy must be boolean",
             stage="merge_decision",
-            details={"merge_decision_block_on_hazard_blocking_signals": block_on_signals},
+            details={
+                "merge_decision_block_on_hazard_blocking_signals": block_on_signals
+            },
         )
 
     blocking_reason_codes: list[str] = []
@@ -66,8 +71,12 @@ def build_merge_decision_reasons(
     if hidden_pressure >= 0.25:
         caution_reason_codes.append("HAZARD_HIDDEN_PRESSURE_ELEVATED")
 
-    blocking_reason_codes = _stable_reason_subset(BLOCK_REASON_ORDER, blocking_reason_codes)
-    caution_reason_codes = _stable_reason_subset(CAUTION_REASON_ORDER, caution_reason_codes)
+    blocking_reason_codes = _stable_reason_subset(
+        BLOCK_REASON_ORDER, blocking_reason_codes
+    )
+    caution_reason_codes = _stable_reason_subset(
+        CAUTION_REASON_ORDER, caution_reason_codes
+    )
 
     if blocking_reason_codes:
         decision = "block"
@@ -131,7 +140,9 @@ def _required_bool(obj: dict[str, Any], key: str) -> bool:
 
 def _required_string_list(obj: dict[str, Any], key: str) -> list[str]:
     value = obj.get(key)
-    if not isinstance(value, list) or not all(isinstance(item, str) and item for item in value):
+    if not isinstance(value, list) or not all(
+        isinstance(item, str) and item for item in value
+    ):
         raise StageError(
             "merge decision requires list of strings",
             stage="merge_decision",

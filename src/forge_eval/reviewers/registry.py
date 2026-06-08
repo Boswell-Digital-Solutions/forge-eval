@@ -3,7 +3,9 @@ from __future__ import annotations
 from forge_eval.errors import StageError
 from forge_eval.reviewers.base import Reviewer
 from forge_eval.reviewers.changed_lines import ChangedLinesRuleReviewer
-from forge_eval.reviewers.documentation_consistency import DocumentationConsistencyReviewer
+from forge_eval.reviewers.documentation_consistency import (
+    DocumentationConsistencyReviewer,
+)
 from forge_eval.reviewers.structural_risk import StructuralRiskReviewer
 
 _REVIEWER_REGISTRY: dict[str, Reviewer] = {

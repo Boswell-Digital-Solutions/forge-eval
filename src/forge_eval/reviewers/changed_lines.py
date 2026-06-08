@@ -20,7 +20,14 @@ class ChangedLinesRuleReviewer:
         has_docs_changes = bool(context.get("has_docs_changes", False))
         has_code_changes = bool(context.get("has_code_changes", False))
 
-        for slc in sorted(slices, key=lambda s: (str(s["file_path"]), int(s["start_line"]), int(s["end_line"]))):
+        for slc in sorted(
+            slices,
+            key=lambda s: (
+                str(s["file_path"]),
+                int(s["start_line"]),
+                int(s["end_line"]),
+            ),
+        ):
             file_path = str(slc["file_path"])
             content = str(slc.get("content", ""))
             lowered_content = content.lower()
@@ -65,7 +72,11 @@ class ChangedLinesRuleReviewer:
                     )
                 )
 
-            if not lowered_path.endswith(".md") and has_docs_changes and "todo" in lowered_content:
+            if (
+                not lowered_path.endswith(".md")
+                and has_docs_changes
+                and "todo" in lowered_content
+            ):
                 findings.append(
                     _build_raw(
                         spec=spec,

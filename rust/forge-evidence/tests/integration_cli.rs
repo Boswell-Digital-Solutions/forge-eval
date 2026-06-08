@@ -9,7 +9,10 @@ static TEST_DIR_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 fn make_temp_dir(prefix: &str) -> PathBuf {
     let idx = TEST_DIR_COUNTER.fetch_add(1, Ordering::SeqCst);
-    let dir = env::temp_dir().join(format!("forge-evidence-cli-{prefix}-{}-{idx}", std::process::id()));
+    let dir = env::temp_dir().join(format!(
+        "forge-evidence-cli-{prefix}-{}-{idx}",
+        std::process::id()
+    ));
     if dir.exists() {
         fs::remove_dir_all(&dir).expect("remove existing temp dir");
     }

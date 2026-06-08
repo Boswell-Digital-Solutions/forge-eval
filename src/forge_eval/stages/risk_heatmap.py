@@ -10,7 +10,10 @@ from forge_eval.services.git_diff import (
     path_has_allowed_extension,
     path_is_excluded,
 )
-from forge_eval.services.risk_analysis import build_risk_targets, compute_centrality_scores
+from forge_eval.services.risk_analysis import (
+    build_risk_targets,
+    compute_centrality_scores,
+)
 
 
 def run_stage(

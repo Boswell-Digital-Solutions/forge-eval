@@ -79,10 +79,7 @@ mod tests {
         let c1 = canonicalize_json_bytes(one).expect("canonicalize one");
         let c2 = canonicalize_json_bytes(two).expect("canonicalize two");
         assert_eq!(c1, c2);
-        assert_eq!(
-            c1,
-            br#"{"a":2,"b":1,"nested":{"y":2,"z":1}}"#.to_vec()
-        );
+        assert_eq!(c1, br#"{"a":2,"b":1,"nested":{"y":2,"z":1}}"#.to_vec());
     }
 
     #[test]

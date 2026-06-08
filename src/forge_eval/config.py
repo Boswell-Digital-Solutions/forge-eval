@@ -129,7 +129,18 @@ DEFAULT_CONFIG: dict[str, Any] = {
             "kind": "changed_lines",
             "enabled": True,
             "failure_mode": "fail_stage",
-            "scope_rules": {"include_extensions": [".md", ".py", ".json", ".rs", ".js", ".ts", ".tsx", ".jsx"]},
+            "scope_rules": {
+                "include_extensions": [
+                    ".md",
+                    ".py",
+                    ".json",
+                    ".rs",
+                    ".js",
+                    ".ts",
+                    ".tsx",
+                    ".jsx",
+                ]
+            },
             "finding_rules": {
                 "default_severity": "medium",
                 "default_category": "consistency",
@@ -176,12 +187,16 @@ def _parse_config_file(path: Path) -> dict[str, Any]:
         try:
             obj = json.loads(raw)
         except json.JSONDecodeError as exc:
-            raise ConfigError("invalid JSON config", details={"path": str(path), "error": str(exc)}) from exc
+            raise ConfigError(
+                "invalid JSON config", details={"path": str(path), "error": str(exc)}
+            ) from exc
     elif suffix in {".yaml", ".yml"}:
         try:
             obj = yaml.safe_load(raw)
         except yaml.YAMLError as exc:
-            raise ConfigError("invalid YAML config", details={"path": str(path), "error": str(exc)}) from exc
+            raise ConfigError(
+                "invalid YAML config", details={"path": str(path), "error": str(exc)}
+            ) from exc
     else:
         raise ConfigError(
             "unsupported config format; expected .json/.yaml/.yml",
@@ -197,7 +212,9 @@ def _parse_config_file(path: Path) -> dict[str, Any]:
 
 def _ensure_number(name: str, value: Any, *, min_value: float | None = None) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
-        raise ConfigError("config value must be numeric", details={"key": name, "value": value})
+        raise ConfigError(
+            "config value must be numeric", details={"key": name, "value": value}
+        )
     out = float(value)
     if min_value is not None and out < min_value:
         raise ConfigError(
@@ -255,7 +272,9 @@ def _normalize_risk_weights(values: Any) -> dict[str, float]:
     expected = {"w_churn", "w_centrality", "w_change_magnitude"}
     unknown = set(values.keys()) - expected
     if unknown:
-        raise ConfigError("unknown risk_weights keys", details={"keys": sorted(unknown)})
+        raise ConfigError(
+            "unknown risk_weights keys", details={"keys": sorted(unknown)}
+        )
 
     merged = copy.deepcopy(DEFAULT_CONFIG["risk_weights"])
     for key, value in values.items():
@@ -263,7 +282,9 @@ def _normalize_risk_weights(values: Any) -> dict[str, float]:
 
     total = merged["w_churn"] + merged["w_centrality"] + merged["w_change_magnitude"]
     if total <= 0.0:
-        raise ConfigError("risk weight sum must be > 0", details={"risk_weights": merged})
+        raise ConfigError(
+            "risk weight sum must be > 0", details={"risk_weights": merged}
+        )
 
     # Normalize to deterministic unit sum for stable scoring.
     return {k: merged[k] / total for k in sorted(merged.keys())}
@@ -277,7 +298,9 @@ def _normalize_scope_rules(values: Any) -> dict[str, Any]:
     allowed = {"exclude_paths", "include_extensions", "min_risk_score"}
     unknown = set(values.keys()) - allowed
     if unknown:
-        raise ConfigError("unknown reviewer scope_rules keys", details={"keys": sorted(unknown)})
+        raise ConfigError(
+            "unknown reviewer scope_rules keys", details={"keys": sorted(unknown)}
+        )
 
     if "include_extensions" in values:
         out["include_extensions"] = _normalize_extensions(values["include_extensions"])
@@ -290,7 +313,9 @@ def _normalize_scope_rules(values: Any) -> dict[str, Any]:
         out["exclude_paths"] = []
 
     if "min_risk_score" in values:
-        score = _ensure_number("scope_rules.min_risk_score", values["min_risk_score"], min_value=0.0)
+        score = _ensure_number(
+            "scope_rules.min_risk_score", values["min_risk_score"], min_value=0.0
+        )
         if score > 1.0:
             raise ConfigError(
                 "scope_rules.min_risk_score must be <= 1.0",
@@ -317,25 +342,38 @@ def _normalize_finding_rules(values: Any) -> dict[str, Any]:
     }
     unknown = set(values.keys()) - allowed
     if unknown:
-        raise ConfigError("unknown reviewer finding_rules keys", details={"keys": sorted(unknown)})
+        raise ConfigError(
+            "unknown reviewer finding_rules keys", details={"keys": sorted(unknown)}
+        )
 
     severity = values.get("default_severity", "medium")
     if severity not in KNOWN_SEVERITIES:
-        raise ConfigError("invalid reviewer default severity", details={"severity": severity})
+        raise ConfigError(
+            "invalid reviewer default severity", details={"severity": severity}
+        )
     out["default_severity"] = severity
 
     category = values.get("default_category", "unknown")
     if category not in KNOWN_CATEGORIES:
-        raise ConfigError("invalid reviewer default category", details={"category": category})
+        raise ConfigError(
+            "invalid reviewer default category", details={"category": category}
+        )
     out["default_category"] = category
 
     confidence = values.get("confidence", 0.7)
-    out["confidence"] = _ensure_number("finding_rules.confidence", confidence, min_value=0.0)
+    out["confidence"] = _ensure_number(
+        "finding_rules.confidence", confidence, min_value=0.0
+    )
     if out["confidence"] > 1.0:
-        raise ConfigError("finding_rules.confidence must be <= 1.0", details={"confidence": out["confidence"]})
+        raise ConfigError(
+            "finding_rules.confidence must be <= 1.0",
+            details={"confidence": out["confidence"]},
+        )
 
     risk_threshold = values.get("risk_threshold", 0.8)
-    out["risk_threshold"] = _ensure_number("finding_rules.risk_threshold", risk_threshold, min_value=0.0)
+    out["risk_threshold"] = _ensure_number(
+        "finding_rules.risk_threshold", risk_threshold, min_value=0.0
+    )
     if out["risk_threshold"] > 1.0:
         raise ConfigError(
             "finding_rules.risk_threshold must be <= 1.0",
@@ -361,26 +399,42 @@ def _normalize_reviewers(values: Any) -> list[dict[str, Any]]:
         if not isinstance(reviewer, dict):
             raise ConfigError("each reviewer must be an object")
 
-        allowed_keys = {"reviewer_id", "kind", "enabled", "failure_mode", "scope_rules", "finding_rules"}
+        allowed_keys = {
+            "reviewer_id",
+            "kind",
+            "enabled",
+            "failure_mode",
+            "scope_rules",
+            "finding_rules",
+        }
         unknown = set(reviewer.keys()) - allowed_keys
         if unknown:
-            raise ConfigError("unknown reviewer keys", details={"keys": sorted(unknown)})
+            raise ConfigError(
+                "unknown reviewer keys", details={"keys": sorted(unknown)}
+            )
 
         reviewer_id = reviewer.get("reviewer_id")
         if not isinstance(reviewer_id, str) or not reviewer_id.strip():
             raise ConfigError("reviewer_id must be a non-empty string")
         reviewer_id = reviewer_id.strip()
         if reviewer_id in seen_ids:
-            raise ConfigError("duplicate reviewer_id in config", details={"reviewer_id": reviewer_id})
+            raise ConfigError(
+                "duplicate reviewer_id in config", details={"reviewer_id": reviewer_id}
+            )
         seen_ids.add(reviewer_id)
 
         kind = reviewer.get("kind")
         if kind not in KNOWN_REVIEWER_KINDS:
-            raise ConfigError("unsupported reviewer kind", details={"reviewer_id": reviewer_id, "kind": kind})
+            raise ConfigError(
+                "unsupported reviewer kind",
+                details={"reviewer_id": reviewer_id, "kind": kind},
+            )
 
         enabled = reviewer.get("enabled")
         if not isinstance(enabled, bool):
-            raise ConfigError("reviewer enabled must be boolean", details={"reviewer_id": reviewer_id})
+            raise ConfigError(
+                "reviewer enabled must be boolean", details={"reviewer_id": reviewer_id}
+            )
 
         failure_mode = reviewer.get("failure_mode")
         if failure_mode not in KNOWN_REVIEWER_FAILURE_MODES:
@@ -417,15 +471,22 @@ def _normalize_localization_ranking_weights(values: Any) -> dict[str, float]:
     expected = {"support_count", "defect_density", "hazard_contribution", "churn"}
     unknown = set(values.keys()) - expected
     if unknown:
-        raise ConfigError("unknown localization_ranking_weights keys", details={"keys": sorted(unknown)})
+        raise ConfigError(
+            "unknown localization_ranking_weights keys",
+            details={"keys": sorted(unknown)},
+        )
 
     merged = copy.deepcopy(DEFAULT_CONFIG["localization_ranking_weights"])
     for key, value in values.items():
-        merged[key] = _ensure_number(f"localization_ranking_weights.{key}", value, min_value=0.0)
+        merged[key] = _ensure_number(
+            f"localization_ranking_weights.{key}", value, min_value=0.0
+        )
 
     total = sum(merged.values())
     if total <= 0.0:
-        raise ConfigError("localization ranking weight sum must be > 0", details={"weights": merged})
+        raise ConfigError(
+            "localization ranking weight sum must be > 0", details={"weights": merged}
+        )
 
     return {k: merged[k] / total for k in sorted(merged.keys())}
 
@@ -445,7 +506,10 @@ def normalize_config(raw: dict[str, Any] | None) -> dict[str, Any]:
         requested = set(value)
         invalid = requested - set(KNOWN_STAGES)
         if invalid:
-            raise ConfigError("enabled_stages contains unknown stage", details={"stages": sorted(invalid)})
+            raise ConfigError(
+                "enabled_stages contains unknown stage",
+                details={"stages": sorted(invalid)},
+            )
         cfg["enabled_stages"] = [stage for stage in KNOWN_STAGES if stage in requested]
         if not cfg["enabled_stages"]:
             raise ConfigError("at least one stage must be enabled")
@@ -468,7 +532,9 @@ def normalize_config(raw: dict[str, Any] | None) -> dict[str, Any]:
             continue
         value = raw[key]
         if isinstance(value, bool) or not isinstance(value, int):
-            raise ConfigError("config value must be integer", details={"key": key, "value": value})
+            raise ConfigError(
+                "config value must be integer", details={"key": key, "value": value}
+            )
         if value < min_value:
             raise ConfigError(
                 "config value below minimum",
@@ -483,7 +549,9 @@ def normalize_config(raw: dict[str, Any] | None) -> dict[str, Any]:
         cfg["fail_on_slice_truncation"] = value
 
     if "include_file_extensions" in raw:
-        cfg["include_file_extensions"] = _normalize_extensions(raw["include_file_extensions"])
+        cfg["include_file_extensions"] = _normalize_extensions(
+            raw["include_file_extensions"]
+        )
 
     if "exclude_paths" in raw:
         cfg["exclude_paths"] = _normalize_exclude_paths(raw["exclude_paths"])
@@ -513,17 +581,13 @@ def normalize_config(raw: dict[str, Any] | None) -> dict[str, Any]:
     if "telemetry_k_eff_mode" in raw:
         value = raw["telemetry_k_eff_mode"]
         if value not in KNOWN_TELEMETRY_KEFF_MODES:
-            raise ConfigError(
-                "telemetry_k_eff_mode must be 'global_min_per_defect'"
-            )
+            raise ConfigError("telemetry_k_eff_mode must be 'global_min_per_defect'")
         cfg["telemetry_k_eff_mode"] = value
 
     if "occupancy_model_version" in raw:
         value = raw["occupancy_model_version"]
         if value not in KNOWN_OCCUPANCY_MODEL_VERSIONS:
-            raise ConfigError(
-                "occupancy_model_version must be 'occupancy_rev1'"
-            )
+            raise ConfigError("occupancy_model_version must be 'occupancy_rev1'")
         cfg["occupancy_model_version"] = value
 
     occupancy_float_keys = (
@@ -538,7 +602,10 @@ def normalize_config(raw: dict[str, Any] | None) -> dict[str, Any]:
             continue
         value = _ensure_number(key, raw[key], min_value=0.0)
         if value > 1.0:
-            raise ConfigError("occupancy config value must be <= 1.0", details={"key": key, "value": value})
+            raise ConfigError(
+                "occupancy config value must be <= 1.0",
+                details={"key": key, "value": value},
+            )
         cfg[key] = value
 
     if "occupancy_round_digits" in raw:
@@ -546,23 +613,21 @@ def normalize_config(raw: dict[str, Any] | None) -> dict[str, Any]:
         if isinstance(value, bool) or not isinstance(value, int):
             raise ConfigError("occupancy_round_digits must be an integer")
         if value < 0 or value > 12:
-            raise ConfigError("occupancy_round_digits must be in [0, 12]", details={"value": value})
+            raise ConfigError(
+                "occupancy_round_digits must be in [0, 12]", details={"value": value}
+            )
         cfg["occupancy_round_digits"] = value
 
     if "capture_inclusion_policy" in raw:
         value = raw["capture_inclusion_policy"]
         if value not in KNOWN_CAPTURE_INCLUSION_POLICIES:
-            raise ConfigError(
-                "capture_inclusion_policy must be 'include_all'"
-            )
+            raise ConfigError("capture_inclusion_policy must be 'include_all'")
         cfg["capture_inclusion_policy"] = value
 
     if "capture_selection_policy" in raw:
         value = raw["capture_selection_policy"]
         if value not in KNOWN_CAPTURE_SELECTION_POLICIES:
-            raise ConfigError(
-                "capture_selection_policy must be 'max_hidden'"
-            )
+            raise ConfigError("capture_selection_policy must be 'max_hidden'")
         cfg["capture_selection_policy"] = value
 
     if "ice_rare_threshold" in raw:
@@ -570,7 +635,9 @@ def normalize_config(raw: dict[str, Any] | None) -> dict[str, Any]:
         if isinstance(value, bool) or not isinstance(value, int):
             raise ConfigError("ice_rare_threshold must be an integer")
         if value < 1:
-            raise ConfigError("ice_rare_threshold must be >= 1", details={"value": value})
+            raise ConfigError(
+                "ice_rare_threshold must be >= 1", details={"value": value}
+            )
         cfg["ice_rare_threshold"] = value
 
     if "capture_round_digits" in raw:
@@ -578,7 +645,9 @@ def normalize_config(raw: dict[str, Any] | None) -> dict[str, Any]:
         if isinstance(value, bool) or not isinstance(value, int):
             raise ConfigError("capture_round_digits must be an integer")
         if value < 0 or value > 12:
-            raise ConfigError("capture_round_digits must be in [0, 12]", details={"value": value})
+            raise ConfigError(
+                "capture_round_digits must be in [0, 12]", details={"value": value}
+            )
         cfg["capture_round_digits"] = value
 
     if "hazard_model_version" in raw:
@@ -600,7 +669,10 @@ def normalize_config(raw: dict[str, Any] | None) -> dict[str, Any]:
             continue
         value = _ensure_number(key, raw[key], min_value=0.0)
         if value > 1.0:
-            raise ConfigError("hazard config value must be <= 1.0", details={"key": key, "value": value})
+            raise ConfigError(
+                "hazard config value must be <= 1.0",
+                details={"key": key, "value": value},
+            )
         cfg[key] = value
 
     if "hazard_round_digits" in raw:
@@ -608,7 +680,9 @@ def normalize_config(raw: dict[str, Any] | None) -> dict[str, Any]:
         if isinstance(value, bool) or not isinstance(value, int):
             raise ConfigError("hazard_round_digits must be an integer")
         if value < 0 or value > 12:
-            raise ConfigError("hazard_round_digits must be in [0, 12]", details={"value": value})
+            raise ConfigError(
+                "hazard_round_digits must be in [0, 12]", details={"value": value}
+            )
         cfg["hazard_round_digits"] = value
 
     if "merge_decision_model_version" in raw:
@@ -636,7 +710,9 @@ def normalize_config(raw: dict[str, Any] | None) -> dict[str, Any]:
         raise ConfigError(
             "merge_decision_caution_threshold must be <= merge_decision_block_threshold",
             details={
-                "merge_decision_caution_threshold": cfg["merge_decision_caution_threshold"],
+                "merge_decision_caution_threshold": cfg[
+                    "merge_decision_caution_threshold"
+                ],
                 "merge_decision_block_threshold": cfg["merge_decision_block_threshold"],
             },
         )
@@ -644,19 +720,25 @@ def normalize_config(raw: dict[str, Any] | None) -> dict[str, Any]:
     if "merge_decision_block_on_hazard_blocking_signals" in raw:
         value = raw["merge_decision_block_on_hazard_blocking_signals"]
         if not isinstance(value, bool):
-            raise ConfigError("merge_decision_block_on_hazard_blocking_signals must be a boolean")
+            raise ConfigError(
+                "merge_decision_block_on_hazard_blocking_signals must be a boolean"
+            )
         cfg["merge_decision_block_on_hazard_blocking_signals"] = value
 
     if "evidence_bundle_model_version" in raw:
         value = raw["evidence_bundle_model_version"]
         if value not in KNOWN_EVIDENCE_BUNDLE_MODEL_VERSIONS:
-            raise ConfigError("evidence_bundle_model_version must be 'evidence_bundle_rev1'")
+            raise ConfigError(
+                "evidence_bundle_model_version must be 'evidence_bundle_rev1'"
+            )
         cfg["evidence_bundle_model_version"] = value
 
     if "localization_model_version" in raw:
         value = raw["localization_model_version"]
         if value not in KNOWN_LOCALIZATION_MODEL_VERSIONS:
-            raise ConfigError("localization_model_version must be 'localization_pack_rev1'")
+            raise ConfigError(
+                "localization_model_version must be 'localization_pack_rev1'"
+            )
         cfg["localization_model_version"] = value
 
     localization_int_keys = {
@@ -670,9 +752,14 @@ def normalize_config(raw: dict[str, Any] | None) -> dict[str, Any]:
             continue
         value = raw[key]
         if isinstance(value, bool) or not isinstance(value, int):
-            raise ConfigError("config value must be integer", details={"key": key, "value": value})
+            raise ConfigError(
+                "config value must be integer", details={"key": key, "value": value}
+            )
         if value < min_val:
-            raise ConfigError("config value below minimum", details={"key": key, "value": value, "min": min_val})
+            raise ConfigError(
+                "config value below minimum",
+                details={"key": key, "value": value, "min": min_val},
+            )
         cfg[key] = value
 
     if "localization_round_digits" in raw:
@@ -680,36 +767,79 @@ def normalize_config(raw: dict[str, Any] | None) -> dict[str, Any]:
         if isinstance(value, bool) or not isinstance(value, int):
             raise ConfigError("localization_round_digits must be an integer")
         if value < 0 or value > 12:
-            raise ConfigError("localization_round_digits must be in [0, 12]", details={"value": value})
+            raise ConfigError(
+                "localization_round_digits must be in [0, 12]", details={"value": value}
+            )
         cfg["localization_round_digits"] = value
 
     if "localization_ranking_weights" in raw:
-        cfg["localization_ranking_weights"] = _normalize_localization_ranking_weights(raw["localization_ranking_weights"])
+        cfg["localization_ranking_weights"] = _normalize_localization_ranking_weights(
+            raw["localization_ranking_weights"]
+        )
 
     if "reviewers" in raw:
         cfg["reviewers"] = _normalize_reviewers(raw["reviewers"])
 
-    cfg["include_file_extensions"] = _normalize_extensions(cfg["include_file_extensions"])
+    cfg["include_file_extensions"] = _normalize_extensions(
+        cfg["include_file_extensions"]
+    )
     cfg["exclude_paths"] = _normalize_exclude_paths(cfg["exclude_paths"])
     cfg["reviewers"] = _normalize_reviewers(cfg["reviewers"])
 
     enabled_stage_set = set(cfg["enabled_stages"])
-    if "review_findings" in enabled_stage_set and "context_slices" not in enabled_stage_set:
-        raise ConfigError("review_findings stage requires context_slices stage to be enabled")
-    if "telemetry_matrix" in enabled_stage_set and "review_findings" not in enabled_stage_set:
-        raise ConfigError("telemetry_matrix stage requires review_findings stage to be enabled")
-    if "occupancy_snapshot" in enabled_stage_set and "telemetry_matrix" not in enabled_stage_set:
-        raise ConfigError("occupancy_snapshot stage requires telemetry_matrix stage to be enabled")
-    if "capture_estimate" in enabled_stage_set and "occupancy_snapshot" not in enabled_stage_set:
-        raise ConfigError("capture_estimate stage requires occupancy_snapshot stage to be enabled")
-    if "hazard_map" in enabled_stage_set and "capture_estimate" not in enabled_stage_set:
-        raise ConfigError("hazard_map stage requires capture_estimate stage to be enabled")
+    if (
+        "review_findings" in enabled_stage_set
+        and "context_slices" not in enabled_stage_set
+    ):
+        raise ConfigError(
+            "review_findings stage requires context_slices stage to be enabled"
+        )
+    if (
+        "telemetry_matrix" in enabled_stage_set
+        and "review_findings" not in enabled_stage_set
+    ):
+        raise ConfigError(
+            "telemetry_matrix stage requires review_findings stage to be enabled"
+        )
+    if (
+        "occupancy_snapshot" in enabled_stage_set
+        and "telemetry_matrix" not in enabled_stage_set
+    ):
+        raise ConfigError(
+            "occupancy_snapshot stage requires telemetry_matrix stage to be enabled"
+        )
+    if (
+        "capture_estimate" in enabled_stage_set
+        and "occupancy_snapshot" not in enabled_stage_set
+    ):
+        raise ConfigError(
+            "capture_estimate stage requires occupancy_snapshot stage to be enabled"
+        )
+    if (
+        "hazard_map" in enabled_stage_set
+        and "capture_estimate" not in enabled_stage_set
+    ):
+        raise ConfigError(
+            "hazard_map stage requires capture_estimate stage to be enabled"
+        )
     if "merge_decision" in enabled_stage_set and "hazard_map" not in enabled_stage_set:
-        raise ConfigError("merge_decision stage requires hazard_map stage to be enabled")
-    if "evidence_bundle" in enabled_stage_set and "merge_decision" not in enabled_stage_set:
-        raise ConfigError("evidence_bundle stage requires merge_decision stage to be enabled")
-    if "localization_pack" in enabled_stage_set and "evidence_bundle" not in enabled_stage_set:
-        raise ConfigError("localization_pack stage requires evidence_bundle stage to be enabled")
+        raise ConfigError(
+            "merge_decision stage requires hazard_map stage to be enabled"
+        )
+    if (
+        "evidence_bundle" in enabled_stage_set
+        and "merge_decision" not in enabled_stage_set
+    ):
+        raise ConfigError(
+            "evidence_bundle stage requires merge_decision stage to be enabled"
+        )
+    if (
+        "localization_pack" in enabled_stage_set
+        and "evidence_bundle" not in enabled_stage_set
+    ):
+        raise ConfigError(
+            "localization_pack stage requires evidence_bundle stage to be enabled"
+        )
 
     return cfg
 

@@ -13,6 +13,18 @@ dependencies = [
   "PyYAML>=6.0.1",
 ]
 
+[project.optional-dependencies]
+# Test/lint toolchain used by the suite and CI.
+dev = [
+  "pytest>=7.0",
+  "ruff>=0.4",
+]
+# forge_lineage_sdk is provided by the surrounding ecosystem checkout (local
+# editable install), not PyPI; declared here to document the lineage extra.
+lineage = [
+  "forge-lineage-sdk",
+]
+
 [project.scripts]
 forge-eval = "forge_eval.cli:main"
 
@@ -22,6 +34,17 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+# Explicit rule set (previously implicit defaults): pycodestyle errors/warnings,
+# Pyflakes, and import sorting. Keeps the lint gate reproducible.
+select = ["E", "F", "W", "I"]
+# `ruff format` owns line length; E501 only fights it on long comments/strings.
+ignore = ["E501"]
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-q"
@@ -29,28 +52,3 @@ pythonpath = ["src", "."]
 markers = [
   "integration: integration tests",
 ]
-
-[tool.mypy]
-python_version = "3.12"
-files = ["src"]
-
-# External ecosystem packages and un-stubbed third-party libraries are resolved
-# at runtime, not type-checked here.
-[[tool.mypy.overrides]]
-module = [
-  "yaml",
-  "jsonschema",
-  "forge_contract_core.*",
-  "forge_lineage_sdk",
-  "forge_lineage_sdk.*",
-]
-ignore_missing_imports = true
-
-[tool.ruff]
-target-version = "py312"
-
-[tool.ruff.lint.per-file-ignores]
-# This module deliberately imports a sibling-repo file via importlib after
-# computing its path, so the import is not at the top of the file (E402). The
-# test is skipped in CI until that sibling coupling is made optional.
-"tests/test_localization_e2e.py" = ["E402"]

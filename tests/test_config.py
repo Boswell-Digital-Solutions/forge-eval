@@ -22,7 +22,9 @@ def test_config_normalization_defaults() -> None:
         "merge_decision",
         "evidence_bundle",
     ]
-    assert cfg["include_file_extensions"] == sorted(DEFAULT_CONFIG["include_file_extensions"])
+    assert cfg["include_file_extensions"] == sorted(
+        DEFAULT_CONFIG["include_file_extensions"]
+    )
     assert cfg["exclude_paths"] == sorted(DEFAULT_CONFIG["exclude_paths"])
     assert abs(sum(cfg["risk_weights"].values()) - 1.0) < 1e-9
     assert cfg["reviewer_failure_policy"] == "fail_stage"
@@ -51,7 +53,11 @@ def test_load_config_json(tmp_path: Path) -> None:
         json.dumps(
             {
                 "enabled_stages": ["context_slices"],
-                "risk_weights": {"w_churn": 3.0, "w_centrality": 1.0, "w_change_magnitude": 0.0},
+                "risk_weights": {
+                    "w_churn": 3.0,
+                    "w_centrality": 1.0,
+                    "w_change_magnitude": 0.0,
+                },
             }
         ),
         encoding="utf-8",
@@ -123,7 +129,9 @@ def test_review_findings_requires_context_slices() -> None:
 
 def test_telemetry_matrix_requires_review_findings() -> None:
     with pytest.raises(ConfigError):
-        normalize_config({"enabled_stages": ["risk_heatmap", "context_slices", "telemetry_matrix"]})
+        normalize_config(
+            {"enabled_stages": ["risk_heatmap", "context_slices", "telemetry_matrix"]}
+        )
 
 
 def test_occupancy_snapshot_requires_telemetry_matrix() -> None:

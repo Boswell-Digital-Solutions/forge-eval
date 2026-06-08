@@ -23,9 +23,15 @@ def compute_posterior(
         reviewer_count=reviewer_count,
     )
 
-    detection_assumption = _required_unit_float(config, "occupancy_detection_assumption")
-    miss_penalty_strength = _required_unit_float(config, "occupancy_miss_penalty_strength")
-    null_uncertainty_boost = _required_unit_float(config, "occupancy_null_uncertainty_boost")
+    detection_assumption = _required_unit_float(
+        config, "occupancy_detection_assumption"
+    )
+    miss_penalty_strength = _required_unit_float(
+        config, "occupancy_miss_penalty_strength"
+    )
+    null_uncertainty_boost = _required_unit_float(
+        config, "occupancy_null_uncertainty_boost"
+    )
 
     coverage_ratio = k_eff_defect / reviewer_count
     miss_ratio_usable = (missed_by / k_eff_defect) if k_eff_defect > 0 else 0.0
@@ -37,7 +43,9 @@ def compute_posterior(
     miss_penalty = miss_penalty_strength * miss_ratio_usable * coverage_ratio
     uncertainty_guard = null_uncertainty_boost * null_ratio * (1.0 - coverage_ratio)
 
-    psi_post = _clamp(psi_after_observation - miss_penalty + uncertainty_guard, 0.02, 0.995)
+    psi_post = _clamp(
+        psi_after_observation - miss_penalty + uncertainty_guard, 0.02, 0.995
+    )
     if psi_post < 0.0 or psi_post > 1.0:
         raise StageError(
             "psi_post is out of range after occupancy computation",

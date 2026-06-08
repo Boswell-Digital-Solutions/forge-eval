@@ -17,11 +17,13 @@ def build_patch_scope(
         target_id = target.get("target_id", "")
         file_path = target.get("file_path", "")
         allow_ranges = target.get("allow_ranges", [])
-        patch_scope.append({
-            "target_id": target_id,
-            "file_path": file_path,
-            "allow_ranges": allow_ranges,
-        })
+        patch_scope.append(
+            {
+                "target_id": target_id,
+                "file_path": file_path,
+                "allow_ranges": allow_ranges,
+            }
+        )
 
     patch_scope.sort(key=lambda p: (p["file_path"], p["target_id"]))
     return patch_scope

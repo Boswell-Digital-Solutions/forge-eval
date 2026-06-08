@@ -6,15 +6,19 @@ from pathlib import Path
 from typing import Any
 
 from forge_eval.errors import StageError, ValidationError
-from forge_eval.stages.capture_estimate import run_stage as run_capture_estimate_stage
-from forge_eval.stages.evidence_bundle import run_stage as run_evidence_bundle_stage
-from forge_eval.stages.localization_pack import run_stage as run_localization_pack_stage
-from forge_eval.stages.hazard_map import run_stage as run_hazard_map_stage
-from forge_eval.stages.merge_decision import run_stage as run_merge_decision_stage
 from forge_eval.services.git_diff import resolve_commit
-from forge_eval.stages.occupancy_snapshot import run_stage as run_occupancy_snapshot_stage
+from forge_eval.stages.capture_estimate import run_stage as run_capture_estimate_stage
 from forge_eval.stages.context_slices import run_stage as run_context_slices_stage
-from forge_eval.stages.reviewer_execution import run_stage as run_reviewer_execution_stage
+from forge_eval.stages.evidence_bundle import run_stage as run_evidence_bundle_stage
+from forge_eval.stages.hazard_map import run_stage as run_hazard_map_stage
+from forge_eval.stages.localization_pack import run_stage as run_localization_pack_stage
+from forge_eval.stages.merge_decision import run_stage as run_merge_decision_stage
+from forge_eval.stages.occupancy_snapshot import (
+    run_stage as run_occupancy_snapshot_stage,
+)
+from forge_eval.stages.reviewer_execution import (
+    run_stage as run_reviewer_execution_stage,
+)
 from forge_eval.stages.risk_heatmap import run_stage as run_risk_heatmap_stage
 from forge_eval.stages.telemetry_matrix import run_stage as run_telemetry_matrix_stage
 from forge_eval.validation.schema_loader import SCHEMA_BY_ARTIFACT, load_all_schemas
@@ -47,7 +51,9 @@ STAGE_TO_ARTIFACT_KIND = {
 
 
 def stable_json_dumps(obj: Any) -> str:
-    return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n"
+    return (
+        json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n"
+    )
 
 
 def write_json_file(path: Path, obj: Any) -> None:
@@ -87,7 +93,9 @@ def _run_stage(
         subset = None
         risk_artifact = prior_artifacts.get("risk_heatmap")
         if risk_artifact is not None:
-            subset = [str(target["file_path"]) for target in risk_artifact.get("targets", [])]
+            subset = [
+                str(target["file_path"]) for target in risk_artifact.get("targets", [])
+            ]
         return run_context_slices_stage(
             repo_path=repo_path,
             base_ref=base_ref,
@@ -376,9 +384,13 @@ def run_pipeline(
     }
 
 
-def _expected_artifacts_from_resolved_config(config_artifact: dict[str, Any]) -> list[str]:
+def _expected_artifacts_from_resolved_config(
+    config_artifact: dict[str, Any],
+) -> list[str]:
     enabled = config_artifact.get("enabled_stages")
-    if not isinstance(enabled, list) or not all(isinstance(item, str) for item in enabled):
+    if not isinstance(enabled, list) or not all(
+        isinstance(item, str) for item in enabled
+    ):
         raise ValidationError(
             "config.resolved.json has invalid enabled_stages",
             details={"enabled_stages": enabled},
@@ -391,7 +403,9 @@ def _expected_artifacts_from_resolved_config(config_artifact: dict[str, Any]) ->
             details={"stages": invalid},
         )
 
-    return [STAGE_TO_ARTIFACT_KIND[stage] for stage in STAGE_ORDER if stage in set(enabled)]
+    return [
+        STAGE_TO_ARTIFACT_KIND[stage] for stage in STAGE_ORDER if stage in set(enabled)
+    ]
 
 
 def validate_artifacts_directory(
@@ -401,7 +415,9 @@ def validate_artifacts_directory(
 ) -> dict[str, Any]:
     out = Path(artifacts_dir)
     if not out.exists():
-        raise ValidationError("artifacts directory does not exist", details={"path": str(out)})
+        raise ValidationError(
+            "artifacts directory does not exist", details={"path": str(out)}
+        )
 
     schemas = load_all_schemas(schema_dir)
 

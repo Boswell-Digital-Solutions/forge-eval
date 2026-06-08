@@ -8,14 +8,13 @@ import jsonschema
 from forge_eval.config import normalize_config
 from forge_eval.services.construct_extractor import (
     ROOT_CAUSE_HYPOTHESIS_ENUM,
+    derive_root_cause_hypothesis,
     detect_framework,
     detect_language,
-    derive_root_cause_hypothesis,
     extract_constructs,
 )
 from forge_eval.services.patch_scope_builder import build_patch_scope
 from forge_eval.stages.localization_pack import run_stage
-
 
 SCHEMA_DIR = Path(__file__).resolve().parent.parent / "src" / "forge_eval" / "schemas"
 
@@ -27,9 +26,16 @@ def _load_schema(name: str) -> dict:
 def _config(**overrides) -> dict:
     raw = {
         "enabled_stages": [
-            "risk_heatmap", "context_slices", "review_findings",
-            "telemetry_matrix", "occupancy_snapshot", "capture_estimate",
-            "hazard_map", "merge_decision", "evidence_bundle", "localization_pack",
+            "risk_heatmap",
+            "context_slices",
+            "review_findings",
+            "telemetry_matrix",
+            "occupancy_snapshot",
+            "capture_estimate",
+            "hazard_map",
+            "merge_decision",
+            "evidence_bundle",
+            "localization_pack",
         ],
     }
     raw.update(overrides)
@@ -42,73 +48,106 @@ def _make_artifacts(file_paths: list[str]):
     telemetry_rows = []
     hazard_rows = []
     for i, fp in enumerate(file_paths):
-        slices.append({
-            "slice_id": f"slice_{i}",
-            "file_path": fp,
-            "start_line": 1,
-            "end_line": 20,
-            "content": "# test",
-            "context_radius": 12,
-        })
+        slices.append(
+            {
+                "slice_id": f"slice_{i}",
+                "file_path": fp,
+                "start_line": 1,
+                "end_line": 20,
+                "content": "# test",
+                "context_radius": 12,
+            }
+        )
         dk = f"dfk_{i:064x}"
-        findings.append({
-            "defect_key": dk,
-            "file_path": fp,
-            "line": 5,
-            "category": "correctness",
-            "severity": "medium",
-            "reviewer_id": "r1",
-            "message": "test",
-            "confidence": 0.8,
-        })
-        telemetry_rows.append({
-            "defect_key": dk,
-            "file_path": fp,
-            "line": 5,
-            "category": "correctness",
-            "severity": "medium",
-            "reported_by": ["r1"],
-            "support_count": 2,
-            "observed_by": 2,
-            "missed_by": 0,
-            "null_by": 0,
-            "k_eff_defect": 1,
-        })
-        hazard_rows.append({
-            "defect_key": dk,
-            "file_path": fp,
-            "category": "correctness",
-            "severity": "medium",
-            "reported_by": ["r1"],
-            "support_count": 2,
-            "observed_by": 2,
-            "missed_by": 0,
-            "null_by": 0,
-            "k_eff_defect": 1,
-            "psi_post": 0.5,
-            "local_risk_score": 0.8,
-            "severity_weight": 0.5,
-            "occupancy_uplift": 0.1,
-            "structural_risk_uplift": 0.1,
-            "support_uplift": 0.1,
-            "hazard_contribution": 0.6,
-            "hazard_flags": [],
-        })
+        findings.append(
+            {
+                "defect_key": dk,
+                "file_path": fp,
+                "line": 5,
+                "category": "correctness",
+                "severity": "medium",
+                "reviewer_id": "r1",
+                "message": "test",
+                "confidence": 0.8,
+            }
+        )
+        telemetry_rows.append(
+            {
+                "defect_key": dk,
+                "file_path": fp,
+                "line": 5,
+                "category": "correctness",
+                "severity": "medium",
+                "reported_by": ["r1"],
+                "support_count": 2,
+                "observed_by": 2,
+                "missed_by": 0,
+                "null_by": 0,
+                "k_eff_defect": 1,
+            }
+        )
+        hazard_rows.append(
+            {
+                "defect_key": dk,
+                "file_path": fp,
+                "category": "correctness",
+                "severity": "medium",
+                "reported_by": ["r1"],
+                "support_count": 2,
+                "observed_by": 2,
+                "missed_by": 0,
+                "null_by": 0,
+                "k_eff_defect": 1,
+                "psi_post": 0.5,
+                "local_risk_score": 0.8,
+                "severity_weight": 0.5,
+                "occupancy_uplift": 0.1,
+                "structural_risk_uplift": 0.1,
+                "support_uplift": 0.1,
+                "hazard_contribution": 0.6,
+                "hazard_flags": [],
+            }
+        )
 
-    ctx = {"artifact_version": 1, "kind": "context_slices", "run_id": "r1", "slices": slices}
-    rf = {"artifact_version": 1, "kind": "review_findings", "run_id": "r1", "findings": findings}
-    tm = {"artifact_version": 1, "kind": "telemetry_matrix", "run_id": "r1", "rows": telemetry_rows}
+    ctx = {
+        "artifact_version": 1,
+        "kind": "context_slices",
+        "run_id": "r1",
+        "slices": slices,
+    }
+    rf = {
+        "artifact_version": 1,
+        "kind": "review_findings",
+        "run_id": "r1",
+        "findings": findings,
+    }
+    tm = {
+        "artifact_version": 1,
+        "kind": "telemetry_matrix",
+        "run_id": "r1",
+        "rows": telemetry_rows,
+    }
     hm = {
-        "artifact_version": 1, "kind": "hazard_map", "run_id": "r1",
+        "artifact_version": 1,
+        "kind": "hazard_map",
+        "run_id": "r1",
         "summary": {
-            "hazard_score": 0.5, "hazard_tier": "elevated",
-            "defect_count": len(file_paths), "observed_defects": len(file_paths),
-            "selected_hidden": 0.3, "selected_total": 1.3,
-            "mean_psi_post": 0.5, "max_risk_score": 0.8,
-            "max_hazard_contribution": 0.6, "hidden_pressure": 0.2,
-            "base_hazard_score": 0.4, "hidden_uplift": 0.05,
-            "uncertainty_uplift": 0.05, "blocking_signals_present": False,
-            "blocking_reason_flags": [], "uncertainty_flags": [],
+            "hazard_score": 0.5,
+            "hazard_tier": "elevated",
+            "defect_count": len(file_paths),
+            "observed_defects": len(file_paths),
+            "selected_hidden": 0.3,
+            "selected_total": 1.3,
+            "mean_psi_post": 0.5,
+            "max_risk_score": 0.8,
+            "max_hazard_contribution": 0.6,
+            "hidden_pressure": 0.2,
+            "base_hazard_score": 0.4,
+            "hidden_uplift": 0.05,
+            "uncertainty_uplift": 0.05,
+            "blocking_signals_present": False,
+            "blocking_reason_flags": [],
+            "uncertainty_flags": [],
         },
         "rows": hazard_rows,
     }
@@ -117,6 +156,7 @@ def _make_artifacts(file_paths: list[str]):
 
 
 # ===== Test 1: Language detected from file extension =====
+
 
 def test_language_detection():
     assert detect_language("src/main.py") == "python"
@@ -129,6 +169,7 @@ def test_language_detection():
 
 # ===== Test 2: Framework hint detection =====
 
+
 def test_framework_detection():
     assert detect_framework("main.py", "from fastapi import APIRouter") == "fastapi"
     assert detect_framework("lib.rs", "use tauri::AppHandle") == "tauri"
@@ -139,8 +180,11 @@ def test_framework_detection():
 
 # ===== Test 3: Construct patterns match correctly =====
 
+
 def test_construct_patterns():
-    py_constructs = extract_constructs("python", ["if x:", "await foo()", "try:", "return y"])
+    py_constructs = extract_constructs(
+        "python", ["if x:", "await foo()", "try:", "return y"]
+    )
     assert "if_guard" in py_constructs
     assert "async_call" in py_constructs
     assert "try_except" in py_constructs
@@ -151,13 +195,16 @@ def test_construct_patterns():
     assert "match_arm" in rs_constructs
     assert "async_task_boundary" in rs_constructs
 
-    svelte_constructs = extract_constructs("svelte", ["{#if cond}", "$state(0)", "$effect(() => {})"])
+    svelte_constructs = extract_constructs(
+        "svelte", ["{#if cond}", "$state(0)", "$effect(() => {})"]
+    )
     assert "if_guard" in svelte_constructs
     assert "reactive_state" in svelte_constructs
     assert "effect_boundary" in svelte_constructs
 
 
 # ===== Test 4: Unknown language returns empty constructs =====
+
 
 def test_unknown_language_empty_constructs():
     assert detect_language("data.csv") is None
@@ -166,6 +213,7 @@ def test_unknown_language_empty_constructs():
 
 
 # ===== Test 5: root_cause_hypothesis = ownership_violation for Rust borrow =====
+
 
 def test_hypothesis_ownership_violation():
     h = derive_root_cause_hypothesis(
@@ -177,6 +225,7 @@ def test_hypothesis_ownership_violation():
 
 # ===== Test 6: root_cause_hypothesis = null when no constructs =====
 
+
 def test_hypothesis_null_no_constructs():
     h = derive_root_cause_hypothesis(language="python", constructs=[])
     assert h is None
@@ -184,10 +233,16 @@ def test_hypothesis_null_no_constructs():
 
 # ===== Test 7: root_cause_hypothesis always from locked enum =====
 
+
 def test_hypothesis_always_valid_enum():
     valid_values = set(ROOT_CAUSE_HYPOTHESIS_ENUM) | {None}
     test_cases = [
-        {"language": "python", "constructs": ["if_guard"], "support_count": 0, "hazard_contribution": 0.0},
+        {
+            "language": "python",
+            "constructs": ["if_guard"],
+            "support_count": 0,
+            "hazard_contribution": 0.0,
+        },
         {"language": "rust", "constructs": ["borrow_boundary"]},
         {"language": "svelte", "constructs": ["reactive_state"]},
         {"language": "python", "constructs": ["async_call"], "support_count": 2},
@@ -201,6 +256,7 @@ def test_hypothesis_always_valid_enum():
 
 
 # ===== Test 8: Patch scope builds from targets =====
+
 
 def test_patch_scope_builds():
     config = _config()
@@ -218,6 +274,7 @@ def test_patch_scope_builds():
 
 # ===== Test 9: Empty patch intersection (placeholder — full test in Slice 4) =====
 
+
 def test_empty_patch_scope_no_targets():
     config = _config()
     result = build_patch_scope(config=config, patch_targets_artifact=None)
@@ -225,6 +282,7 @@ def test_empty_patch_scope_no_targets():
 
 
 # ===== Test 10: No patch targets → patch_scope_present = false =====
+
 
 def test_no_targets_summary_false():
     config = _config()
@@ -243,6 +301,7 @@ def test_no_targets_summary_false():
 
 
 # ===== Test 11: Complete stage golden test =====
+
 
 def test_complete_stage_golden():
     config = _config()
@@ -267,5 +326,12 @@ def test_complete_stage_golden():
     jsonschema.validate(instance=result1, schema=schema)
 
     for bc in result1["block_candidates"]:
-        assert bc["detected_language"] in ("python", "rust", "typescript", "svelte", "other", None)
+        assert bc["detected_language"] in (
+            "python",
+            "rust",
+            "typescript",
+            "svelte",
+            "other",
+            None,
+        )
         assert bc["root_cause_hypothesis"] in list(ROOT_CAUSE_HYPOTHESIS_ENUM) + [None]

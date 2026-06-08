@@ -76,7 +76,10 @@ def _review_findings_artifact() -> dict[str, object]:
                 "category": "docs",
                 "line_start": 1,
                 "line_end": 8,
-                "evidence": {"anchors": ["README.md:1:8"], "signals": ["documentation_consistency"]},
+                "evidence": {
+                    "anchors": ["README.md:1:8"],
+                    "signals": ["documentation_consistency"],
+                },
             },
         ],
         "summary": {
@@ -85,7 +88,12 @@ def _review_findings_artifact() -> dict[str, object]:
             "reviewer_failed_count": 1,
             "reviewer_skipped_count": 0,
             "finding_count": 2,
-            "finding_count_by_severity": {"low": 1, "medium": 1, "high": 0, "critical": 0},
+            "finding_count_by_severity": {
+                "low": 1,
+                "medium": 1,
+                "high": 0,
+                "critical": 0,
+            },
         },
         "provenance": {
             "algorithm": "reviewer_execution_v1",
@@ -138,7 +146,9 @@ def test_telemetry_matrix_failed_reviewer_is_null_not_zero() -> None:
         config=cfg,
         review_findings_artifact=_review_findings_artifact(),
     )
-    code_row = next(row for row in out["matrix"] if row["defect_key"] == "dfk_" + ("a" * 64))
+    code_row = next(
+        row for row in out["matrix"] if row["defect_key"] == "dfk_" + ("a" * 64)
+    )
     assert code_row["observations"]["structural_risk.v1"] is None
 
 
@@ -163,11 +173,15 @@ def test_telemetry_matrix_coalesces_cross_reviewer_defect_key() -> None:
         review_findings_artifact=artifact,
     )
 
-    defect = next(item for item in out["defects"] if item["defect_key"] == "dfk_" + ("a" * 64))
+    defect = next(
+        item for item in out["defects"] if item["defect_key"] == "dfk_" + ("a" * 64)
+    )
     assert defect["reported_by"] == ["changed_lines.rule.v1", "structural_risk.v1"]
     assert defect["support_count"] == 2
 
-    row = next(item for item in out["matrix"] if item["defect_key"] == "dfk_" + ("a" * 64))
+    row = next(
+        item for item in out["matrix"] if item["defect_key"] == "dfk_" + ("a" * 64)
+    )
     assert row["observations"]["changed_lines.rule.v1"] == 1
     assert row["observations"]["documentation_consistency.v1"] is None
     assert row["observations"]["structural_risk.v1"] == 1
@@ -189,8 +203,13 @@ def test_telemetry_matrix_same_reviewer_duplicate_defect_key_fails_closed() -> N
         )
 
 
-@pytest.mark.parametrize("field,bad_value", [("file_path", "other.py"), ("category", "schema"), ("severity", "high")])
-def test_telemetry_matrix_incompatible_cross_reviewer_duplicate_fails_closed(field: str, bad_value: str) -> None:
+@pytest.mark.parametrize(
+    "field,bad_value",
+    [("file_path", "other.py"), ("category", "schema"), ("severity", "high")],
+)
+def test_telemetry_matrix_incompatible_cross_reviewer_duplicate_fails_closed(
+    field: str, bad_value: str
+) -> None:
     cfg = normalize_config({})
     artifact = _review_findings_artifact()
     artifact["reviewers"][2]["status"] = "ok"
@@ -242,6 +261,8 @@ def test_telemetry_matrix_skipped_reviewer_is_not_usable() -> None:
         review_findings_artifact=artifact,
     )
 
-    reviewer = next(item for item in out["reviewers"] if item["reviewer_id"] == "structural_risk.v1")
+    reviewer = next(
+        item for item in out["reviewers"] if item["reviewer_id"] == "structural_risk.v1"
+    )
     assert reviewer["skipped"] is True
     assert reviewer["usable"] is False

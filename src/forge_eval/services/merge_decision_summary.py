@@ -44,7 +44,9 @@ def build_merge_decision_summary(
         "blocking_reason_count": len(blocking_reason_codes),
         "caution_reason_count": len(caution_reason_codes),
         "reason_code_count": len(all_reason_codes),
-        "uncertainty_flag_count": len(_required_string_list(summary, "uncertainty_flags")),
+        "uncertainty_flag_count": len(
+            _required_string_list(summary, "uncertainty_flags")
+        ),
     }
     return decision_payload, summary_payload
 
@@ -80,7 +82,9 @@ def _required_bool(obj: dict[str, Any], key: str) -> bool:
 
 def _required_string_list(obj: dict[str, Any], key: str) -> list[str]:
     value = obj.get(key)
-    if not isinstance(value, list) or not all(isinstance(item, str) and item for item in value):
+    if not isinstance(value, list) or not all(
+        isinstance(item, str) and item for item in value
+    ):
         raise StageError(
             "merge decision summary requires list of strings",
             stage="merge_decision",

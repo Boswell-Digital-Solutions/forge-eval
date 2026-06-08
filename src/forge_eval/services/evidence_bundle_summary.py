@@ -5,16 +5,29 @@ from typing import Any
 from forge_eval.errors import StageError
 
 
-def build_evidence_bundle_summary(*, artifacts: list[dict[str, Any]], merge_decision_artifact: dict[str, Any], manifest: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+def build_evidence_bundle_summary(
+    *,
+    artifacts: list[dict[str, Any]],
+    merge_decision_artifact: dict[str, Any],
+    manifest: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
     decision = _build_decision_section(merge_decision_artifact)
-    summary = _build_summary_section(artifacts=artifacts, merge_decision_artifact=merge_decision_artifact, manifest=manifest)
+    summary = _build_summary_section(
+        artifacts=artifacts,
+        merge_decision_artifact=merge_decision_artifact,
+        manifest=manifest,
+    )
     return decision, summary
 
 
 def _build_decision_section(merge_decision_artifact: dict[str, Any]) -> dict[str, Any]:
     decision = _required_object(merge_decision_artifact, "decision")
     reason_codes = merge_decision_artifact.get("reason_codes")
-    if not isinstance(reason_codes, list) or not reason_codes or not all(isinstance(item, str) and item for item in reason_codes):
+    if (
+        not isinstance(reason_codes, list)
+        or not reason_codes
+        or not all(isinstance(item, str) and item for item in reason_codes)
+    ):
         raise StageError(
             "merge_decision artifact reason_codes must be a non-empty string list",
             stage="evidence_bundle",
@@ -35,7 +48,12 @@ def _build_decision_section(merge_decision_artifact: dict[str, Any]) -> dict[str
     }
 
 
-def _build_summary_section(*, artifacts: list[dict[str, Any]], merge_decision_artifact: dict[str, Any], manifest: dict[str, Any]) -> dict[str, Any]:
+def _build_summary_section(
+    *,
+    artifacts: list[dict[str, Any]],
+    merge_decision_artifact: dict[str, Any],
+    manifest: dict[str, Any],
+) -> dict[str, Any]:
     decision = _required_object(merge_decision_artifact, "decision")
     merge_summary = _required_object(merge_decision_artifact, "summary")
     reason_codes = merge_decision_artifact.get("reason_codes")
@@ -51,10 +69,16 @@ def _build_summary_section(*, artifacts: list[dict[str, Any]], merge_decision_ar
     return {
         "artifact_count": len(artifacts),
         "included_kinds": included_kinds,
-        "final_decision": _required_enum(decision, "result", {"allow", "caution", "block"}),
+        "final_decision": _required_enum(
+            decision, "result", {"allow", "caution", "block"}
+        ),
         "reason_code_count": len(reason_codes),
-        "blocking_conditions_present": _required_bool(decision, "blocking_conditions_present"),
-        "caution_conditions_present": _required_bool(decision, "caution_conditions_present"),
+        "blocking_conditions_present": _required_bool(
+            decision, "blocking_conditions_present"
+        ),
+        "caution_conditions_present": _required_bool(
+            decision, "caution_conditions_present"
+        ),
         "dominant_hazard_tier": _required_enum(
             merge_summary,
             "dominant_hazard_tier",

@@ -3,7 +3,12 @@ from __future__ import annotations
 from typing import Any
 
 from forge_eval.errors import StageError
-from forge_eval.reviewers.base import RawFinding, ReviewerRunResult, ReviewerSpec, SliceRecord
+from forge_eval.reviewers.base import (
+    RawFinding,
+    ReviewerRunResult,
+    ReviewerSpec,
+    SliceRecord,
+)
 from forge_eval.reviewers.registry import get_reviewer
 
 
@@ -65,7 +70,11 @@ def execute_reviewer(
             raise StageError(
                 "reviewer finding is not an object",
                 stage="review_findings",
-                details={"reviewer_id": spec.reviewer_id, "index": idx, "type": str(type(finding))},
+                details={
+                    "reviewer_id": spec.reviewer_id,
+                    "index": idx,
+                    "type": str(type(finding)),
+                },
             )
         if "reviewer_id" not in finding:
             finding = dict(finding)
@@ -81,9 +90,15 @@ def execute_reviewer(
     )
 
 
-def _scoped_slices(slices: list[SliceRecord], scope_rules: dict[str, Any]) -> list[SliceRecord]:
-    include_exts = [str(item).lower() for item in scope_rules.get("include_extensions", [])]
-    exclude_paths = [str(item).replace("\\", "/") for item in scope_rules.get("exclude_paths", [])]
+def _scoped_slices(
+    slices: list[SliceRecord], scope_rules: dict[str, Any]
+) -> list[SliceRecord]:
+    include_exts = [
+        str(item).lower() for item in scope_rules.get("include_extensions", [])
+    ]
+    exclude_paths = [
+        str(item).replace("\\", "/") for item in scope_rules.get("exclude_paths", [])
+    ]
 
     out: list[SliceRecord] = []
     for slc in slices:

@@ -31,7 +31,9 @@ class ForgeEvalError(Exception):
 
 class ConfigError(ForgeEvalError):
     def __init__(self, message: str, *, details: dict[str, Any] | None = None) -> None:
-        super().__init__(code="config_error", message=message, stage="config", details=details)
+        super().__init__(
+            code="config_error", message=message, stage="config", details=details
+        )
 
 
 class ValidationError(ForgeEvalError):
@@ -42,7 +44,9 @@ class ValidationError(ForgeEvalError):
         stage: str | None = "validation",
         details: dict[str, Any] | None = None,
     ) -> None:
-        super().__init__(code="validation_error", message=message, stage=stage, details=details)
+        super().__init__(
+            code="validation_error", message=message, stage=stage, details=details
+        )
 
 
 class StageError(ForgeEvalError):
@@ -53,7 +57,9 @@ class StageError(ForgeEvalError):
         stage: str,
         details: dict[str, Any] | None = None,
     ) -> None:
-        super().__init__(code="stage_error", message=message, stage=stage, details=details)
+        super().__init__(
+            code="stage_error", message=message, stage=stage, details=details
+        )
 
 
 class EvidenceCliError(ForgeEvalError):
@@ -68,4 +74,6 @@ class EvidenceCliError(ForgeEvalError):
 
 class GitError(ForgeEvalError):
     def __init__(self, message: str, *, details: dict[str, Any] | None = None) -> None:
-        super().__init__(code="git_error", message=message, stage="git", details=details)
+        super().__init__(
+            code="git_error", message=message, stage="git", details=details
+        )

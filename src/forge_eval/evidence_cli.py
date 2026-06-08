@@ -53,13 +53,21 @@ class EvidenceCli:
 
         return proc.stdout
 
-    def canonicalize_json(self, input_path: str | Path, *, cwd: str | Path | None = None) -> bytes:
+    def canonicalize_json(
+        self, input_path: str | Path, *, cwd: str | Path | None = None
+    ) -> bytes:
         path = str(Path(input_path))
         return self._run(["canonicalize", path], cwd=cwd)
 
-    def sha256_file(self, input_path: str | Path, *, cwd: str | Path | None = None) -> str:
+    def sha256_file(
+        self, input_path: str | Path, *, cwd: str | Path | None = None
+    ) -> str:
         path = str(Path(input_path))
-        out = self._run(["sha256", path], cwd=cwd).decode("utf-8", errors="replace").strip()
+        out = (
+            self._run(["sha256", path], cwd=cwd)
+            .decode("utf-8", errors="replace")
+            .strip()
+        )
         if len(out) != 64:
             raise EvidenceCliError(
                 "invalid sha256 output length from evidence binary",
@@ -67,11 +75,15 @@ class EvidenceCli:
             )
         return out
 
-    def artifact_id(self, input_path: str | Path, kind: str, *, cwd: str | Path | None = None) -> str:
+    def artifact_id(
+        self, input_path: str | Path, kind: str, *, cwd: str | Path | None = None
+    ) -> str:
         path = str(Path(input_path))
-        out = self._run(["artifact-id", path, "--kind", kind], cwd=cwd).decode(
-            "utf-8", errors="replace"
-        ).strip()
+        out = (
+            self._run(["artifact-id", path, "--kind", kind], cwd=cwd)
+            .decode("utf-8", errors="replace")
+            .strip()
+        )
         if len(out) != 64:
             raise EvidenceCliError(
                 "invalid artifact-id output length from evidence binary",
@@ -79,9 +91,15 @@ class EvidenceCli:
             )
         return out
 
-    def hashchain(self, input_path: str | Path, *, cwd: str | Path | None = None) -> dict[str, Any]:
+    def hashchain(
+        self, input_path: str | Path, *, cwd: str | Path | None = None
+    ) -> dict[str, Any]:
         path = str(Path(input_path))
-        raw = self._run(["hashchain", path], cwd=cwd).decode("utf-8", errors="replace").strip()
+        raw = (
+            self._run(["hashchain", path], cwd=cwd)
+            .decode("utf-8", errors="replace")
+            .strip()
+        )
         try:
             parsed = json.loads(raw)
         except json.JSONDecodeError as exc:

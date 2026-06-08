@@ -7,12 +7,18 @@ from forge_eval.services.occupancy_model import compute_posterior
 from forge_eval.services.occupancy_priors import derive_prior
 
 
-def build_rows(*, telemetry_artifact: dict[str, Any], config: dict[str, Any]) -> list[dict[str, Any]]:
+def build_rows(
+    *, telemetry_artifact: dict[str, Any], config: dict[str, Any]
+) -> list[dict[str, Any]]:
     reviewers = telemetry_artifact.get("reviewers")
     defects = telemetry_artifact.get("defects")
     matrix = telemetry_artifact.get("matrix")
 
-    if not isinstance(reviewers, list) or not isinstance(defects, list) or not isinstance(matrix, list):
+    if (
+        not isinstance(reviewers, list)
+        or not isinstance(defects, list)
+        or not isinstance(matrix, list)
+    ):
         raise StageError(
             "telemetry artifact missing required list sections",
             stage="occupancy_snapshot",
@@ -144,7 +150,9 @@ def build_rows(*, telemetry_artifact: dict[str, Any], config: dict[str, Any]) ->
         support_count = _required_non_negative_int(defect, "support_count")
         severity = str(defect.get("severity", "medium"))
 
-        prior = derive_prior(support_count=support_count, severity=severity, config=config)
+        prior = derive_prior(
+            support_count=support_count, severity=severity, config=config
+        )
         psi_post, terms = compute_posterior(
             prior=prior,
             observed_by=observed_by,
@@ -166,10 +174,14 @@ def build_rows(*, telemetry_artifact: dict[str, Any], config: dict[str, Any]) ->
             "evidence_strength": _strength_band(psi_post),
             "inputs": {
                 "prior": _round_float(terms["prior"], round_digits),
-                "detection_assumption": _round_float(terms["detection_assumption"], round_digits),
+                "detection_assumption": _round_float(
+                    terms["detection_assumption"], round_digits
+                ),
                 "coverage_ratio": _round_float(terms["coverage_ratio"], round_digits),
                 "miss_penalty": _round_float(terms["miss_penalty"], round_digits),
-                "uncertainty_guard": _round_float(terms["uncertainty_guard"], round_digits),
+                "uncertainty_guard": _round_float(
+                    terms["uncertainty_guard"], round_digits
+                ),
             },
         }
 

@@ -14,7 +14,9 @@ def test_parse_single_hunk() -> None:
 +line3
 """
     hunks = parse_unified_diff_hunks(diff)
-    assert [(h.start_line, h.end_line, h.changed_line_count) for h in hunks] == [(5, 7, 3)]
+    assert [(h.start_line, h.end_line, h.changed_line_count) for h in hunks] == [
+        (5, 7, 3)
+    ]
 
 
 def test_parse_multi_hunk() -> None:
@@ -38,7 +40,9 @@ def test_parse_deletion_hunk_maps_to_insertion_point() -> None:
 -old
 """
     hunks = parse_unified_diff_hunks(diff)
-    assert [(h.start_line, h.end_line, h.changed_line_count) for h in hunks] == [(8, 8, 0)]
+    assert [(h.start_line, h.end_line, h.changed_line_count) for h in hunks] == [
+        (8, 8, 0)
+    ]
 
 
 def test_parse_invalid_hunk_fails_closed() -> None:

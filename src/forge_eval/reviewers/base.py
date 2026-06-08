@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Protocol
 
-
 RawFinding = dict[str, Any]
 SliceRecord = dict[str, Any]
 
@@ -36,8 +35,7 @@ class Reviewer(Protocol):
         slices: list[SliceRecord],
         context: dict[str, Any],
         spec: ReviewerSpec,
-    ) -> list[RawFinding]:
-        ...
+    ) -> list[RawFinding]: ...
 
 
 def reviewer_specs_from_config(reviewers: list[dict[str, Any]]) -> list[ReviewerSpec]:

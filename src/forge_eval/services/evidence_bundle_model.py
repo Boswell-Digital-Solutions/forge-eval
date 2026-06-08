@@ -4,7 +4,6 @@ from typing import Any
 
 from forge_eval.errors import StageError
 
-
 _SUPPORTED_MODEL = "evidence_bundle_rev1"
 
 

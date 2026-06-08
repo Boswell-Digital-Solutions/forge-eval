@@ -38,7 +38,9 @@ def normalize_findings(
         title = _required_str(raw, "title")
         description = _optional_str(raw, "description")
 
-        severity = raw.get("severity", spec.finding_rules.get("default_severity", "medium"))
+        severity = raw.get(
+            "severity", spec.finding_rules.get("default_severity", "medium")
+        )
         if severity not in KNOWN_SEVERITIES:
             raise StageError(
                 "invalid finding severity",
@@ -46,7 +48,9 @@ def normalize_findings(
                 details={"severity": severity, "reviewer_id": reviewer_id},
             )
 
-        category = raw.get("category", spec.finding_rules.get("default_category", "unknown"))
+        category = raw.get(
+            "category", spec.finding_rules.get("default_category", "unknown")
+        )
         if category not in KNOWN_CATEGORIES:
             raise StageError(
                 "invalid finding category",
@@ -54,7 +58,9 @@ def normalize_findings(
                 details={"category": category, "reviewer_id": reviewer_id},
             )
 
-        confidence_raw = raw.get("confidence", spec.finding_rules.get("confidence", 0.7))
+        confidence_raw = raw.get(
+            "confidence", spec.finding_rules.get("confidence", 0.7)
+        )
         confidence = _optional_probability(confidence_raw, key="confidence")
 
         line_start_raw = raw.get("line_start")
@@ -160,7 +166,9 @@ def _optional_probability(value: Any, *, key: str) -> float | None:
     return out
 
 
-def _normalize_line_range(line_start_raw: Any, line_end_raw: Any) -> tuple[int | None, int | None]:
+def _normalize_line_range(
+    line_start_raw: Any, line_end_raw: Any
+) -> tuple[int | None, int | None]:
     if line_start_raw is None and line_end_raw is None:
         return (None, None)
     if line_start_raw is None or line_end_raw is None:

@@ -5,7 +5,6 @@ from typing import Any
 from forge_eval.errors import StageError
 from forge_eval.services.hazard_model import clamp_unit, round_float, severity_weight
 
-
 ROW_HIGH_RISK_THRESHOLD = 0.75
 ROW_HIGH_OCCUPANCY_THRESHOLD = 0.80
 
@@ -21,7 +20,11 @@ def build_hazard_rows(
     telemetry_defects = telemetry_matrix_artifact.get("defects")
     occupancy_rows = occupancy_snapshot_artifact.get("rows")
 
-    if not isinstance(risk_targets, list) or not isinstance(telemetry_defects, list) or not isinstance(occupancy_rows, list):
+    if (
+        not isinstance(risk_targets, list)
+        or not isinstance(telemetry_defects, list)
+        or not isinstance(occupancy_rows, list)
+    ):
         raise StageError(
             "hazard_map inputs are missing required list sections",
             stage="hazard_map",
@@ -65,9 +68,15 @@ def build_hazard_rows(
             )
         local_risk_score = risk_by_file[file_path]
 
-        _cross_check_optional_str(defect=defect, occupancy=occupancy, key="file_path", defect_key=defect_key)
-        _cross_check_optional_str(defect=defect, occupancy=occupancy, key="category", defect_key=defect_key)
-        _cross_check_optional_str(defect=defect, occupancy=occupancy, key="severity", defect_key=defect_key)
+        _cross_check_optional_str(
+            defect=defect, occupancy=occupancy, key="file_path", defect_key=defect_key
+        )
+        _cross_check_optional_str(
+            defect=defect, occupancy=occupancy, key="category", defect_key=defect_key
+        )
+        _cross_check_optional_str(
+            defect=defect, occupancy=occupancy, key="severity", defect_key=defect_key
+        )
 
         severity = _required_str(defect, "severity")
         category = _required_str(defect, "category")
@@ -94,12 +103,26 @@ def build_hazard_rows(
         severity_base = severity_weight(severity)
         support_signal = 0.0
         if k_eff_defect > 1:
-            support_signal = min(max(support_count - 1, 0) / float(max(k_eff_defect - 1, 1)), 1.0)
+            support_signal = min(
+                max(support_count - 1, 0) / float(max(k_eff_defect - 1, 1)), 1.0
+            )
 
-        occupancy_uplift = severity_base * float(params["hazard_occupancy_strength"]) * psi_post
-        structural_uplift = severity_base * float(params["hazard_structural_risk_strength"]) * local_risk_score
-        support_uplift = severity_base * float(params["hazard_support_uplift_strength"]) * support_signal
-        hazard_contribution = clamp_unit(severity_base + occupancy_uplift + structural_uplift + support_uplift)
+        occupancy_uplift = (
+            severity_base * float(params["hazard_occupancy_strength"]) * psi_post
+        )
+        structural_uplift = (
+            severity_base
+            * float(params["hazard_structural_risk_strength"])
+            * local_risk_score
+        )
+        support_uplift = (
+            severity_base
+            * float(params["hazard_support_uplift_strength"])
+            * support_signal
+        )
+        hazard_contribution = clamp_unit(
+            severity_base + occupancy_uplift + structural_uplift + support_uplift
+        )
 
         hazard_flags = _build_hazard_flags(
             severity=severity,
@@ -239,7 +262,11 @@ def _required_str(obj: dict[str, Any], key: str) -> str:
 
 def _required_string_list(obj: dict[str, Any], key: str) -> list[str]:
     value = obj.get(key)
-    if not isinstance(value, list) or not value or not all(isinstance(item, str) and item for item in value):
+    if (
+        not isinstance(value, list)
+        or not value
+        or not all(isinstance(item, str) and item for item in value)
+    ):
         raise StageError(
             "hazard input requires non-empty list of strings",
             stage="hazard_map",

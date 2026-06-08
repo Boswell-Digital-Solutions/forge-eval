@@ -13,7 +13,9 @@ class DocumentationConsistencyReviewer:
         context: dict[str, object],
         spec: ReviewerSpec,
     ) -> list[RawFinding]:
-        require_code_and_docs = bool(spec.finding_rules.get("require_code_and_docs", False))
+        require_code_and_docs = bool(
+            spec.finding_rules.get("require_code_and_docs", False)
+        )
         if not require_code_and_docs:
             return []
 
@@ -22,10 +24,22 @@ class DocumentationConsistencyReviewer:
 
         ordered_slices = sorted(
             slices,
-            key=lambda s: (str(s["file_path"]), int(s["start_line"]), int(s["end_line"])),
+            key=lambda s: (
+                str(s["file_path"]),
+                int(s["start_line"]),
+                int(s["end_line"]),
+            ),
         )
-        docs_slices = [slc for slc in ordered_slices if str(slc["file_path"]).lower().endswith(".md")]
-        code_slices = [slc for slc in ordered_slices if not str(slc["file_path"]).lower().endswith(".md")]
+        docs_slices = [
+            slc
+            for slc in ordered_slices
+            if str(slc["file_path"]).lower().endswith(".md")
+        ]
+        code_slices = [
+            slc
+            for slc in ordered_slices
+            if not str(slc["file_path"]).lower().endswith(".md")
+        ]
 
         findings: list[RawFinding] = []
         if has_docs_changes and not has_code_changes and docs_slices:
@@ -53,7 +67,9 @@ class DocumentationConsistencyReviewer:
         return findings
 
 
-def _build_finding(*, spec: ReviewerSpec, slc: SliceRecord, title: str, description: str) -> RawFinding:
+def _build_finding(
+    *, spec: ReviewerSpec, slc: SliceRecord, title: str, description: str
+) -> RawFinding:
     return {
         "reviewer_id": spec.reviewer_id,
         "file_path": str(slc["file_path"]),

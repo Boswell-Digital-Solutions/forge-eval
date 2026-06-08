@@ -4,7 +4,6 @@ from typing import Any
 
 from forge_eval.errors import StageError
 
-
 MERGE_DECISION_MODEL_VERSION = "merge_rev1"
 
 
@@ -34,7 +33,9 @@ def load_merge_decision_model(config: dict[str, Any]) -> dict[str, Any]:
         raise StageError(
             "merge decision blocking-signal policy must be boolean",
             stage="merge_decision",
-            details={"merge_decision_block_on_hazard_blocking_signals": block_on_signals},
+            details={
+                "merge_decision_block_on_hazard_blocking_signals": block_on_signals
+            },
         )
 
     return {

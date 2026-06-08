@@ -81,7 +81,9 @@ def run_stage(
         "base_commit": base_commit or base_ref,
         "head_commit": head_commit or head_ref,
         "slice_artifact": "context_slices.json",
-        "risk_artifact": "risk_heatmap.json" if risk_heatmap_artifact is not None else None,
+        "risk_artifact": "risk_heatmap.json"
+        if risk_heatmap_artifact is not None
+        else None,
     }
 
     return {
@@ -128,7 +130,10 @@ def _build_reviewer_context(
 ) -> dict[str, Any]:
     paths = sorted({str(slc["file_path"]).replace("\\", "/") for slc in slices})
     has_docs_changes = any(path.lower().endswith(".md") for path in paths)
-    has_code_changes = any(path.lower().endswith(_CODE_EXTENSIONS) and not path.lower().endswith(".md") for path in paths)
+    has_code_changes = any(
+        path.lower().endswith(_CODE_EXTENSIONS) and not path.lower().endswith(".md")
+        for path in paths
+    )
     has_schema_like_change = any("schema" in path.lower() for path in paths)
 
     risk_by_path: dict[str, float] = {}

@@ -41,18 +41,22 @@ def compile_review_scope(
             if total_lines + line_count > max_scope_lines:
                 remaining = max_scope_lines - total_lines
                 if remaining > 0:
-                    scope.append({
-                        "file_path": fp,
-                        "start_line": start,
-                        "end_line": start + remaining - 1,
-                    })
+                    scope.append(
+                        {
+                            "file_path": fp,
+                            "start_line": start,
+                            "end_line": start + remaining - 1,
+                        }
+                    )
                     total_lines += remaining
                 break
-            scope.append({
-                "file_path": fp,
-                "start_line": start,
-                "end_line": end,
-            })
+            scope.append(
+                {
+                    "file_path": fp,
+                    "start_line": start,
+                    "end_line": end,
+                }
+            )
             total_lines += line_count
 
         if total_lines >= max_scope_lines:
@@ -82,7 +86,8 @@ def _merge_ranges(ranges: list[tuple[int, int]]) -> list[tuple[int, int]]:
 
 
 def _clamp_ranges(
-    ranges: list[tuple[int, int]], max_lines: int,
+    ranges: list[tuple[int, int]],
+    max_lines: int,
 ) -> list[tuple[int, int]]:
     result: list[tuple[int, int]] = []
     total = 0

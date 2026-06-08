@@ -4,7 +4,6 @@ import os
 import re
 from typing import Any
 
-
 LANGUAGE_MAP: dict[str, str] = {
     ".py": "python",
     ".rs": "rust",
@@ -80,7 +79,9 @@ def detect_framework(file_path: str, source_hint: str | None = None) -> str | No
     return None
 
 
-def extract_constructs(language: str | None, source_lines: list[str] | None = None) -> list[str]:
+def extract_constructs(
+    language: str | None, source_lines: list[str] | None = None
+) -> list[str]:
     if language is None or language not in CONSTRUCT_PATTERNS:
         return []
     if source_lines is None:
@@ -107,13 +108,20 @@ def derive_root_cause_hypothesis(
     if not constructs:
         return None
 
-    if language == "rust" and any(c in constructs for c in ("borrow_boundary", "error_propagation")):
+    if language == "rust" and any(
+        c in constructs for c in ("borrow_boundary", "error_propagation")
+    ):
         return "ownership_violation"
-    if language == "svelte" and any(c in constructs for c in ("reactive_state", "prop_mutation")):
+    if language == "svelte" and any(
+        c in constructs for c in ("reactive_state", "prop_mutation")
+    ):
         return "reactive_state_mutation"
     if "serialization_boundary" in constructs:
         return "serialization_boundary"
-    if any(c in constructs for c in ("async_call", "async_task_boundary")) and support_count > 1:
+    if (
+        any(c in constructs for c in ("async_call", "async_task_boundary"))
+        and support_count > 1
+    ):
         return "async_race"
     if any(c in constructs for c in ("null_check", "if_guard")):
         return "null_path"
@@ -130,7 +138,9 @@ def enrich_block_candidates(
     for bc in block_candidates:
         fp = bc.get("file_path", "")
         lang = detect_language(fp)
-        bc["detected_language"] = lang if lang is not None else ("other" if fp else None)
+        bc["detected_language"] = (
+            lang if lang is not None else ("other" if fp else None)
+        )
 
         bc["likely_constructs"] = []
         bc["root_cause_hypothesis"] = derive_root_cause_hypothesis(

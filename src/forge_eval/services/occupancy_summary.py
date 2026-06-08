@@ -5,14 +5,25 @@ from typing import Any
 from forge_eval.errors import StageError
 
 
-def build_summary(*, rows: list[dict[str, Any]], global_k_eff: int, round_digits: int) -> dict[str, Any]:
-    if isinstance(global_k_eff, bool) or not isinstance(global_k_eff, int) or global_k_eff < 0:
+def build_summary(
+    *, rows: list[dict[str, Any]], global_k_eff: int, round_digits: int
+) -> dict[str, Any]:
+    if (
+        isinstance(global_k_eff, bool)
+        or not isinstance(global_k_eff, int)
+        or global_k_eff < 0
+    ):
         raise StageError(
             "telemetry global k_eff must be a non-negative integer",
             stage="occupancy_snapshot",
             details={"global_k_eff": global_k_eff},
         )
-    if isinstance(round_digits, bool) or not isinstance(round_digits, int) or round_digits < 0 or round_digits > 12:
+    if (
+        isinstance(round_digits, bool)
+        or not isinstance(round_digits, int)
+        or round_digits < 0
+        or round_digits > 12
+    ):
         raise StageError(
             "round_digits must be an integer in [0, 12]",
             stage="occupancy_snapshot",
@@ -54,7 +65,11 @@ def build_summary(*, rows: list[dict[str, Any]], global_k_eff: int, round_digits
                 details={"psi_post": psi_float, "row": row},
             )
 
-        if isinstance(observed_by, bool) or not isinstance(observed_by, int) or observed_by < 0:
+        if (
+            isinstance(observed_by, bool)
+            or not isinstance(observed_by, int)
+            or observed_by < 0
+        ):
             raise StageError(
                 "occupancy row has invalid observed_by",
                 stage="occupancy_snapshot",

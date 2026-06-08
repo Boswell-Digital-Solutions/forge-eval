@@ -24,11 +24,14 @@ from forge_eval.stages.localization_pack import run_stage
 SCHEMA_DIR = Path(__file__).resolve().parent.parent / "src" / "forge_eval" / "schemas"
 
 # Import localization_gate directly without triggering full NeuroForge package init
-import importlib.util as _ilu
+import importlib.util as _ilu  # noqa: E402
 
 _LOC_GATE_PATH = (
     Path(__file__).resolve().parent.parent.parent.parent
-    / "NeuroForge" / "neuroforge_backend" / "services" / "localization_gate.py"
+    / "NeuroForge"
+    / "neuroforge_backend"
+    / "services"
+    / "localization_gate.py"
 )
 _spec = _ilu.spec_from_file_location("localization_gate", _LOC_GATE_PATH)
 _loc_gate_mod = _ilu.module_from_spec(_spec)
@@ -44,13 +47,22 @@ def _load_schema(name: str) -> dict:
 
 
 def _config() -> dict:
-    return normalize_config({
-        "enabled_stages": [
-            "risk_heatmap", "context_slices", "review_findings",
-            "telemetry_matrix", "occupancy_snapshot", "capture_estimate",
-            "hazard_map", "merge_decision", "evidence_bundle", "localization_pack",
-        ],
-    })
+    return normalize_config(
+        {
+            "enabled_stages": [
+                "risk_heatmap",
+                "context_slices",
+                "review_findings",
+                "telemetry_matrix",
+                "occupancy_snapshot",
+                "capture_estimate",
+                "hazard_map",
+                "merge_decision",
+                "evidence_bundle",
+                "localization_pack",
+            ],
+        }
+    )
 
 
 def _make_context_slices_artifact(file_paths: list[str] | None = None) -> dict:
@@ -58,14 +70,16 @@ def _make_context_slices_artifact(file_paths: list[str] | None = None) -> dict:
         file_paths = ["src/main.py", "src/utils.py"]
     slices = []
     for i, fp in enumerate(file_paths):
-        slices.append({
-            "slice_id": f"slice_{i}",
-            "file_path": fp,
-            "start_line": 1 + i * 10,
-            "end_line": 10 + i * 10,
-            "content": "# test content",
-            "context_radius": 12,
-        })
+        slices.append(
+            {
+                "slice_id": f"slice_{i}",
+                "file_path": fp,
+                "start_line": 1 + i * 10,
+                "end_line": 10 + i * 10,
+                "content": "# test content",
+                "context_radius": 12,
+            }
+        )
     return {
         "artifact_version": 1,
         "kind": "context_slices",
@@ -79,16 +93,18 @@ def _make_review_findings_artifact(file_paths: list[str] | None = None) -> dict:
         file_paths = ["src/main.py"]
     findings = []
     for i, fp in enumerate(file_paths):
-        findings.append({
-            "defect_key": f"dfk_{i:064x}",
-            "file_path": fp,
-            "line": 5 + i * 10,
-            "category": "correctness",
-            "severity": "medium",
-            "reviewer_id": "changed_lines.rule.v1",
-            "message": "test finding",
-            "confidence": 0.8,
-        })
+        findings.append(
+            {
+                "defect_key": f"dfk_{i:064x}",
+                "file_path": fp,
+                "line": 5 + i * 10,
+                "category": "correctness",
+                "severity": "medium",
+                "reviewer_id": "changed_lines.rule.v1",
+                "message": "test finding",
+                "confidence": 0.8,
+            }
+        )
     return {
         "artifact_version": 1,
         "kind": "review_findings",
@@ -102,19 +118,21 @@ def _make_telemetry_matrix_artifact(file_paths: list[str] | None = None) -> dict
         file_paths = ["src/main.py"]
     rows = []
     for i, fp in enumerate(file_paths):
-        rows.append({
-            "defect_key": f"dfk_{i:064x}",
-            "file_path": fp,
-            "line": 5 + i * 10,
-            "category": "correctness",
-            "severity": "medium",
-            "reported_by": ["changed_lines.rule.v1"],
-            "support_count": 2,
-            "observed_by": 2,
-            "missed_by": 0,
-            "null_by": 1,
-            "k_eff_defect": 3,
-        })
+        rows.append(
+            {
+                "defect_key": f"dfk_{i:064x}",
+                "file_path": fp,
+                "line": 5 + i * 10,
+                "category": "correctness",
+                "severity": "medium",
+                "reported_by": ["changed_lines.rule.v1"],
+                "support_count": 2,
+                "observed_by": 2,
+                "missed_by": 0,
+                "null_by": 1,
+                "k_eff_defect": 3,
+            }
+        )
     return {
         "artifact_version": 1,
         "kind": "telemetry_matrix",
@@ -128,10 +146,12 @@ def _make_risk_heatmap_artifact(file_paths: list[str] | None = None) -> dict:
         file_paths = ["src/main.py"]
     targets = []
     for fp in file_paths:
-        targets.append({
-            "file_path": fp,
-            "risk_score": 0.8,
-        })
+        targets.append(
+            {
+                "file_path": fp,
+                "risk_score": 0.8,
+            }
+        )
     return {
         "artifact_version": 1,
         "kind": "risk_heatmap",
@@ -145,26 +165,28 @@ def _make_hazard_map_artifact(file_paths: list[str] | None = None) -> dict:
         file_paths = ["src/main.py"]
     rows = []
     for i, fp in enumerate(file_paths):
-        rows.append({
-            "defect_key": f"dfk_{i:064x}",
-            "file_path": fp,
-            "category": "correctness",
-            "severity": "medium",
-            "reported_by": ["changed_lines.rule.v1"],
-            "support_count": 2,
-            "observed_by": 2,
-            "missed_by": 0,
-            "null_by": 1,
-            "k_eff_defect": 3,
-            "psi_post": 0.5,
-            "local_risk_score": 0.8,
-            "severity_weight": 0.5,
-            "occupancy_uplift": 0.1,
-            "structural_risk_uplift": 0.2,
-            "support_uplift": 0.1,
-            "hazard_contribution": 0.7,
-            "hazard_flags": [],
-        })
+        rows.append(
+            {
+                "defect_key": f"dfk_{i:064x}",
+                "file_path": fp,
+                "category": "correctness",
+                "severity": "medium",
+                "reported_by": ["changed_lines.rule.v1"],
+                "support_count": 2,
+                "observed_by": 2,
+                "missed_by": 0,
+                "null_by": 1,
+                "k_eff_defect": 3,
+                "psi_post": 0.5,
+                "local_risk_score": 0.8,
+                "severity_weight": 0.5,
+                "occupancy_uplift": 0.1,
+                "structural_risk_uplift": 0.2,
+                "support_uplift": 0.1,
+                "hazard_contribution": 0.7,
+                "hazard_flags": [],
+            }
+        )
     return {
         "artifact_version": 1,
         "kind": "hazard_map",
@@ -205,10 +227,13 @@ def _run_pack_n() -> dict:
 
 
 def _stable_json(obj: dict) -> str:
-    return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n"
+    return (
+        json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n"
+    )
 
 
 # ===== Test 1: End-to-end localized repair run succeeds =====
+
 
 def test_e2e_localized_repair_valid_pack():
     """Pack N produces a valid localization_pack artifact from upstream artifacts."""
@@ -222,6 +247,7 @@ def test_e2e_localized_repair_valid_pack():
 
 
 # ===== Test 2: Repair prompt contains only approved regions =====
+
 
 def test_e2e_repair_prompt_approved_regions_only():
     """Localized context rendering includes only review_scope blocks."""
@@ -239,6 +265,7 @@ def test_e2e_repair_prompt_approved_regions_only():
 
 # ===== Test 3: Out-of-scope repair blocked by LOC-GATE-NO-SCOPE =====
 
+
 def test_e2e_out_of_scope_blocked():
     """Patch target outside review_scope is blocked by LOC-GATE-NO-SCOPE."""
     pack = _run_pack_n()
@@ -252,11 +279,13 @@ def test_e2e_out_of_scope_blocked():
             "workspace_root": str(tmp_dir),
             "run_id": "run1",
             "patch_targets": {
-                "targets": [{
-                    "target_id": "tgt_outside",
-                    "file_path": "src/totally_different.py",
-                    "allow_ranges": [{"start_line": 500, "end_line": 600}],
-                }],
+                "targets": [
+                    {
+                        "target_id": "tgt_outside",
+                        "file_path": "src/totally_different.py",
+                        "allow_ranges": [{"start_line": 500, "end_line": 600}],
+                    }
+                ],
             },
         }
         localization_input = {
@@ -274,6 +303,7 @@ def test_e2e_out_of_scope_blocked():
 
 # ===== Test 4: Repair blocked by LOC-GATE-MISSING =====
 
+
 def test_e2e_repair_blocked_missing():
     """Repair without localization input is blocked by LOC-GATE-MISSING."""
     eval_context = {"task_type": "patch"}
@@ -287,6 +317,7 @@ def test_e2e_repair_blocked_missing():
 
 
 # ===== Test 5: allow_analysis_only downgrade =====
+
 
 def test_e2e_analysis_only_downgrade():
     """allow_analysis_only=true downgrades to analysis — no patch scope rendered."""
@@ -304,6 +335,7 @@ def test_e2e_analysis_only_downgrade():
 
 # ===== Test 6: Artifact chain auditable =====
 
+
 def test_e2e_artifact_chain_auditable():
     """Localization pack includes source artifact refs for audit trail."""
     result = _run_pack_n()
@@ -318,6 +350,7 @@ def test_e2e_artifact_chain_auditable():
 
 
 # ===== Test 7: Byte-identical on repeated runs =====
+
 
 def test_e2e_byte_identical_repeated_runs():
     """Repeated runs with identical inputs produce byte-identical artifacts."""

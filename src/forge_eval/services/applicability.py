@@ -37,11 +37,17 @@ def reviewer_applicable_to_defect(
             details={"reviewer_id": reviewer.get("reviewer_id")},
         )
 
-    include_extensions = [str(item).lower() for item in scope_rules.get("include_extensions", [])]
-    exclude_paths = [str(item).replace("\\", "/") for item in scope_rules.get("exclude_paths", [])]
+    include_extensions = [
+        str(item).lower() for item in scope_rules.get("include_extensions", [])
+    ]
+    exclude_paths = [
+        str(item).replace("\\", "/") for item in scope_rules.get("exclude_paths", [])
+    ]
 
     lowered_path = file_path.lower()
-    if include_extensions and not any(lowered_path.endswith(ext) for ext in include_extensions):
+    if include_extensions and not any(
+        lowered_path.endswith(ext) for ext in include_extensions
+    ):
         return False
     if any(file_path.startswith(prefix) for prefix in exclude_paths):
         return False

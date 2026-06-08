@@ -49,7 +49,9 @@ def test_cli_help_smoke() -> None:
     assert exc.value.code == 0
 
 
-def test_cli_run_with_stub_stage(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_cli_run_with_stub_stage(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     called = {}
 
     def fake_run_pipeline(**kwargs: object) -> dict[str, object]:
@@ -91,7 +93,9 @@ def test_cli_validate_with_schema_valid_artifact(tmp_path: Path) -> None:
         "run_id": "run123",
         "enabled_stages": ["risk_heatmap"],
     }
-    (artifacts / "config.resolved.json").write_text(json.dumps(resolved), encoding="utf-8")
+    (artifacts / "config.resolved.json").write_text(
+        json.dumps(resolved), encoding="utf-8"
+    )
     (artifacts / "risk_heatmap.json").write_text(
         json.dumps(_valid_risk_heatmap_artifact()), encoding="utf-8"
     )
@@ -110,7 +114,9 @@ def test_cli_validate_fails_on_invalid_artifact(tmp_path: Path) -> None:
         "run_id": "run123",
         "enabled_stages": ["risk_heatmap"],
     }
-    (artifacts / "config.resolved.json").write_text(json.dumps(resolved), encoding="utf-8")
+    (artifacts / "config.resolved.json").write_text(
+        json.dumps(resolved), encoding="utf-8"
+    )
 
     broken = _valid_risk_heatmap_artifact()
     broken.pop("targets")
