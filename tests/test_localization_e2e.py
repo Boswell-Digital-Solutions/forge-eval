@@ -13,16 +13,13 @@
 from __future__ import annotations
 
 import json
-import sys
 import tempfile
 from pathlib import Path
 
 import jsonschema
-import pytest
 
 from forge_eval.config import normalize_config
 from forge_eval.stages.localization_pack import run_stage
-from forge_eval.validation.schema_loader import load_schema
 
 SCHEMA_DIR = Path(__file__).resolve().parent.parent / "src" / "forge_eval" / "schemas"
 

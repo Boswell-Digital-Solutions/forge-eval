@@ -16,7 +16,7 @@ from forge_eval.contracts.evaluation_spine import (
 )
 from forge_eval.errors import StageError
 from forge_eval.services.git_diff import resolve_commit
-from forge_eval.stage_runner import _compute_run_id, stable_json_dumps, validate_artifacts_directory, write_json_file
+from forge_eval.stage_runner import _compute_run_id, validate_artifacts_directory, write_json_file
 from forge_eval.stages.context_slices import run_stage as run_context_slices_stage
 from forge_eval.stages.risk_heatmap import run_stage as run_risk_heatmap_stage
 from forge_eval.validation.schema_loader import load_all_schemas

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from forge_eval.reviewers.base import RawFinding, ReviewerSpec, SliceRecord
 
 
@@ -10,7 +12,7 @@ class StructuralRiskReviewer:
         self,
         *,
         slices: list[SliceRecord],
-        context: dict[str, object],
+        context: dict[str, Any],
         spec: ReviewerSpec,
     ) -> list[RawFinding]:
         risk_by_path = dict(context.get("risk_by_path", {}))

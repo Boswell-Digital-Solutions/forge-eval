@@ -4,17 +4,13 @@ import json
 from pathlib import Path
 
 import jsonschema
-import pytest
 
 from forge_eval.config import normalize_config
-from forge_eval.errors import StageError
 from forge_eval.services.construct_extractor import (
-    CONSTRUCT_PATTERNS,
     ROOT_CAUSE_HYPOTHESIS_ENUM,
     detect_framework,
     detect_language,
     derive_root_cause_hypothesis,
-    enrich_block_candidates,
     extract_constructs,
 )
 from forge_eval.services.patch_scope_builder import build_patch_scope

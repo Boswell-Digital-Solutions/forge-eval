@@ -241,6 +241,7 @@ def _run_stage(
                     f"evidence_bundle stage requires {kind} artifact",
                     stage=stage,
                 )
+        present = {k: v for k, v in required_artifacts.items() if v is not None}
         return run_evidence_bundle_stage(
             repo_path=repo_path,
             artifacts_dir=out_dir,
@@ -249,14 +250,14 @@ def _run_stage(
             run_id=run_id,
             config=config,
             resolved_config_artifact=resolved_config_artifact,
-            risk_heatmap_artifact=required_artifacts["risk_heatmap"],
-            context_slices_artifact=required_artifacts["context_slices"],
-            review_findings_artifact=required_artifacts["review_findings"],
-            telemetry_matrix_artifact=required_artifacts["telemetry_matrix"],
-            occupancy_snapshot_artifact=required_artifacts["occupancy_snapshot"],
-            capture_estimate_artifact=required_artifacts["capture_estimate"],
-            hazard_map_artifact=required_artifacts["hazard_map"],
-            merge_decision_artifact=required_artifacts["merge_decision"],
+            risk_heatmap_artifact=present["risk_heatmap"],
+            context_slices_artifact=present["context_slices"],
+            review_findings_artifact=present["review_findings"],
+            telemetry_matrix_artifact=present["telemetry_matrix"],
+            occupancy_snapshot_artifact=present["occupancy_snapshot"],
+            capture_estimate_artifact=present["capture_estimate"],
+            hazard_map_artifact=present["hazard_map"],
+            merge_decision_artifact=present["merge_decision"],
         )
 
     if stage == "localization_pack":

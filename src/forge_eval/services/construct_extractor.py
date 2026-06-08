@@ -71,7 +71,6 @@ def detect_language(file_path: str) -> str | None:
 
 
 def detect_framework(file_path: str, source_hint: str | None = None) -> str | None:
-    lang = detect_language(file_path)
     if source_hint is None:
         return None
     for framework, hints in FRAMEWORK_HINTS.items():

@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 import re
 from pathlib import PurePosixPath
-from typing import Iterable
+from typing import Any, Iterable
 
 from forge_eval.services.git_diff import (
     file_content_at_ref,
@@ -171,7 +171,7 @@ def build_risk_targets(
     centrality_scores: dict[str, float],
     risk_weights: dict[str, float],
     path_weights: dict[str, float],
-) -> list[dict[str, object]]:
+) -> list[dict[str, Any]]:
     changed_paths = sorted({_normalize_path(path) for path in changed_paths})
 
     churn_raw: dict[str, float] = {}
