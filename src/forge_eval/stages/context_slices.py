@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
 from forge_eval.services.slice_extractor import extract_context_slices
 
@@ -12,7 +12,7 @@ def run_stage(
     base_ref: str,
     head_ref: str,
     run_id: str,
-    config: dict[str, object],
+    config: dict[str, Any],
     target_file_subset: Iterable[str] | None = None,
 ) -> dict[str, object]:
     repo = Path(repo_path)

@@ -121,17 +121,6 @@ def run_stage(
         entry["end_line"] - entry["start_line"] + 1 for entry in review_scope
     )
 
-    reason_code_counts: dict[str, int] = {}
-    for bc in block_candidates:
-        for rc in bc.get("reason_codes", []):
-            reason_code_counts[rc] = reason_code_counts.get(rc, 0) + 1
-    top_reason_codes = sorted(
-        reason_code_counts.keys(),
-        key=lambda rc: (-reason_code_counts[rc], rc),
-    )
-
-    top_files = [fc["file_path"] for fc in file_candidates[:3]]
-
     logger.info(
         "localization_pack telemetry: "
         "run_id=%s model_version=%s file_candidates=%d block_candidates=%d "

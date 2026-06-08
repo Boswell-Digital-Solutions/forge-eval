@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from forge_eval.evidence_cli import EvidenceCli
 from forge_eval.errors import StageError

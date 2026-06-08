@@ -3,11 +3,10 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
 from forge_eval.errors import StageError
 from forge_eval.services.git_diff import (
-    ChangedFile,
     file_content_at_ref,
     list_changed_files,
     numstat_for_file,
@@ -79,7 +78,7 @@ def _build_slice(
     changed_ranges: list[LineRange],
     base_ref: str,
     head_ref: str,
-) -> dict[str, object]:
+) -> dict[str, Any]:
     changed_line_count = overlap_with_ranges(rng, changed_ranges)
     total_line_count = range_line_count(rng)
     start_line, end_line = rng
@@ -107,8 +106,8 @@ def _extract_file_slices(
     file_path: str,
     base_ref: str,
     head_ref: str,
-    config: dict[str, object],
-) -> list[dict[str, object]]:
+    config: dict[str, Any],
+) -> list[dict[str, Any]]:
     added, deleted, is_binary = numstat_for_file(repo_path, base_ref, head_ref, file_path)
     if is_binary:
         policy = str(config["binary_file_policy"])
@@ -186,9 +185,9 @@ def extract_context_slices(
     repo_path: str | Path,
     base_ref: str,
     head_ref: str,
-    config: dict[str, object],
+    config: dict[str, Any],
     target_file_subset: Iterable[str] | None = None,
-) -> dict[str, object]:
+) -> dict[str, Any]:
     repo = Path(repo_path)
     include_extensions = list(config["include_file_extensions"])
     exclude_paths = list(config["exclude_paths"])
@@ -200,7 +199,7 @@ def extract_context_slices(
 
     changed_files = list_changed_files(repo, base_ref, head_ref)
 
-    slices: list[dict[str, object]] = []
+    slices: list[dict[str, Any]] = []
     included_targets: list[str] = []
 
     for changed in changed_files:

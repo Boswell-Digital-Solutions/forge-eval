@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import jsonschema
 import pytest
 
 from forge_eval.config import normalize_config

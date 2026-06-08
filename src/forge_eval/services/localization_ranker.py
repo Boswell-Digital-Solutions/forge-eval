@@ -210,9 +210,10 @@ def _hazard_for_slice(
     slice_entry: dict[str, Any],
     hazard_map_artifact: dict[str, Any],
 ) -> float:
+    # Hazard rows are file-scoped (the hazard_map schema has no per-line field),
+    # so hazard is the max contribution across the file. This is deliberately
+    # coarser than the line-range-scoped lookup in _support_for_slice.
     file_path = slice_entry.get("file_path")
-    start = slice_entry.get("start_line", 0)
-    end = slice_entry.get("end_line", 0)
     max_hc = 0.0
     for row in hazard_map_artifact.get("rows", []):
         if row.get("file_path") != file_path:

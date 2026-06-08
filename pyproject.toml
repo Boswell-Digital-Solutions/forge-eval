@@ -29,3 +29,19 @@ pythonpath = ["src"]
 markers = [
   "integration: integration tests",
 ]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src"]
+
+# External ecosystem packages and un-stubbed third-party libraries are resolved
+# at runtime, not type-checked here.
+[[tool.mypy.overrides]]
+module = [
+  "yaml",
+  "jsonschema",
+  "forge_contract_core.*",
+  "forge_lineage_sdk",
+  "forge_lineage_sdk.*",
+]
+ignore_missing_imports = true

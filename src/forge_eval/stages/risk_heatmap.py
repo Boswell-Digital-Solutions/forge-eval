@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from forge_eval.services.git_diff import (
     list_changed_files,
@@ -18,8 +19,8 @@ def run_stage(
     base_ref: str,
     head_ref: str,
     run_id: str,
-    config: dict[str, object],
-) -> dict[str, object]:
+    config: dict[str, Any],
+) -> dict[str, Any]:
     repo = Path(repo_path)
 
     include_extensions = list(config["include_file_extensions"])
