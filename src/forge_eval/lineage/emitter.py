@@ -111,14 +111,17 @@ class ForgeEvalLineageEmitter:
         deterministic: bool = True,
         trace_id: str | None = None,
         bundle_artifact_path: str | None = None,
+        bundle_artifact_hash: str | None = None,
     ) -> LineageEmissionStatus:
         """Emit run + bundle nodes and the produced edge as a single envelope.
 
         ``bundle_artifact_path`` (when provided) is recorded on the bundle node as an
         ``artifact_ref`` so a downstream consumer (e.g. ForgeCommand's self-healing tick) can
         locate the evidence-bundle contract JSON — the identity-only node payload does not carry
-        the file targets. Never raises: any error is captured in ``LineageEmissionStatus.error``
-        and the returned ``outcome`` is ``lineage_missing`` or ``lineage_degraded``.
+        the file targets. ``bundle_artifact_hash`` (optional) is the sha256 of the file at that
+        path, making the ref self-verifying; when omitted it falls back to the bundle identity
+        hash. Never raises: any error is captured in ``LineageEmissionStatus.error`` and the
+        returned ``outcome`` is ``lineage_missing`` or ``lineage_degraded``.
         """
         try:
             return self._emit(
@@ -130,6 +133,7 @@ class ForgeEvalLineageEmitter:
                 deterministic=deterministic,
                 trace_id=trace_id,
                 bundle_artifact_path=bundle_artifact_path,
+                bundle_artifact_hash=bundle_artifact_hash,
             )
         except Exception as exc:  # noqa: BLE001
             logger.warning(
@@ -151,6 +155,7 @@ class ForgeEvalLineageEmitter:
         deterministic: bool,
         trace_id: str | None,
         bundle_artifact_path: str | None = None,
+        bundle_artifact_hash: str | None = None,
     ) -> LineageEmissionStatus:
         trace = trace_id or f"trace:forge-eval:{forge_eval_run_id}"
 
@@ -190,7 +195,9 @@ class ForgeEvalLineageEmitter:
             bundle_artifact_ref = {
                 "artifact_kind": "forge_eval_evidence_bundle",
                 "artifact_path": bundle_artifact_path,
-                "artifact_hash": bundle_hash,
+                # sha256 of the file at artifact_path (self-verifying); falls back to the
+                # bundle identity hash when the caller did not supply the file hash.
+                "artifact_hash": bundle_artifact_hash or bundle_hash,
             }
         bundle_node = build_node(
             node_type="forge_eval_evidence_bundle",

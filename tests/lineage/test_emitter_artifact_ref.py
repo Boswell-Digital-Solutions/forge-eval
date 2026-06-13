@@ -66,3 +66,22 @@ def test_bundle_node_omits_artifact_ref_when_path_absent():
         evidence_bundle=_evidence_bundle("fe-noar"),
     )
     assert "artifact_ref" not in _bundle_node(client.envelopes[0])
+
+
+def test_explicit_artifact_hash_is_self_verifying_file_hash():
+    """When the caller supplies the file's own hash, the ref records it (not the bundle
+    identity hash) so a consumer can verify the file it reads at artifact_path."""
+    client = _CapturingClient()
+    file_hash = "f" * 64
+    ForgeEvalLineageEmitter(client).emit_run_and_bundle(
+        forge_eval_run_id="fe-fh",
+        repository_id="repo:demo",
+        head_ref="h",
+        base_ref="b",
+        evidence_bundle=_evidence_bundle("fe-fh"),  # bundle identity hash = "a" * 64
+        bundle_artifact_path="/runs/fe-fh/forge_eval_evidence_bundle.contract.json",
+        bundle_artifact_hash=file_hash,
+    )
+    ref = _bundle_node(client.envelopes[0])["artifact_ref"]
+    assert ref["artifact_hash"] == file_hash
+    assert ref["artifact_hash"] != "a" * 64  # not the bundle identity hash
