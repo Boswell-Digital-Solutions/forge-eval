@@ -110,12 +110,15 @@ class ForgeEvalLineageEmitter:
         evidence_bundle: dict[str, Any],
         deterministic: bool = True,
         trace_id: str | None = None,
+        bundle_artifact_path: str | None = None,
     ) -> LineageEmissionStatus:
         """Emit run + bundle nodes and the produced edge as a single envelope.
 
-        Never raises: any error is captured in ``LineageEmissionStatus.error``
-        and the returned ``outcome`` is ``lineage_missing`` or
-        ``lineage_degraded``.
+        ``bundle_artifact_path`` (when provided) is recorded on the bundle node as an
+        ``artifact_ref`` so a downstream consumer (e.g. ForgeCommand's self-healing tick) can
+        locate the evidence-bundle contract JSON — the identity-only node payload does not carry
+        the file targets. Never raises: any error is captured in ``LineageEmissionStatus.error``
+        and the returned ``outcome`` is ``lineage_missing`` or ``lineage_degraded``.
         """
         try:
             return self._emit(
@@ -126,6 +129,7 @@ class ForgeEvalLineageEmitter:
                 evidence_bundle=evidence_bundle,
                 deterministic=deterministic,
                 trace_id=trace_id,
+                bundle_artifact_path=bundle_artifact_path,
             )
         except Exception as exc:  # noqa: BLE001
             logger.warning(
@@ -146,6 +150,7 @@ class ForgeEvalLineageEmitter:
         evidence_bundle: dict[str, Any],
         deterministic: bool,
         trace_id: str | None,
+        bundle_artifact_path: str | None = None,
     ) -> LineageEmissionStatus:
         trace = trace_id or f"trace:forge-eval:{forge_eval_run_id}"
 
@@ -178,6 +183,15 @@ class ForgeEvalLineageEmitter:
             "payload_hash": bundle_hash,
             "stage_count": _stage_count(evidence_bundle),
         }
+        # Record where the evidence-bundle contract JSON lives so a consumer can fetch the file
+        # targets (the node payload is identity-only). The node is the single lineage index.
+        bundle_artifact_ref = None
+        if bundle_artifact_path:
+            bundle_artifact_ref = {
+                "artifact_kind": "forge_eval_evidence_bundle",
+                "artifact_path": bundle_artifact_path,
+                "artifact_hash": bundle_hash,
+            }
         bundle_node = build_node(
             node_type="forge_eval_evidence_bundle",
             payload_schema_id="forge_eval_evidence_bundle",
@@ -188,6 +202,7 @@ class ForgeEvalLineageEmitter:
             trace_id=trace,
             writer_identity=self.WRITER_IDENTITY,
             stable_source_id=f"forge-eval:bundle:{bundle_id}",
+            artifact_ref=bundle_artifact_ref,
         )
 
         produced_edge = build_edge(
