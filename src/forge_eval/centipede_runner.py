@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -10,6 +12,7 @@ from forge_eval.adapters.centipede_input import (
     CentipedeInput,
     load_centipede_input,
 )
+from forge_eval.lineage import ForgeEvalLineageEmitter, NullLineageEmitter
 from forge_eval.contracts.evaluation_spine import (
     build_forge_eval_evidence_bundle_payload,
     validate_forge_eval_evidence_bundle_payload,
@@ -30,6 +33,65 @@ CENTIPEDE_ENABLED_STAGES = ["risk_heatmap", "context_slices"]
 CENTIPEDE_BUNDLE_KIND = "forge_eval_evidence_bundle"
 CENTIPEDE_BUNDLE_SCHEMA_VERSION = "v1"
 CENTIPEDE_CONTRACT_PAYLOAD_FILENAME = "forge_eval_evidence_bundle.contract.json"
+
+# Opt-in lineage emission. Off by default: emission stays dormant (a no-op emitter) until
+# the operator sets the DataForge-Local URL, so a raw run never depends on the lineage service.
+FORGE_EVAL_LINEAGE_URL_ENV = "FORGE_EVAL_LINEAGE_URL"
+FORGE_EVAL_LINEAGE_TOKEN_ENV = "FORGE_EVAL_LINEAGE_TOKEN"
+
+logger = logging.getLogger(__name__)
+
+
+def _build_lineage_emitter() -> Any:
+    """Return a live emitter when ``FORGE_EVAL_LINEAGE_URL`` is set, else a no-op emitter.
+
+    Default-off is the deliberate posture: turning emission on is an explicit env decision,
+    never an implicit consequence of running forge-eval.
+    """
+    base_url = os.environ.get(FORGE_EVAL_LINEAGE_URL_ENV, "").strip()
+    if not base_url:
+        return NullLineageEmitter()
+    token = os.environ.get(FORGE_EVAL_LINEAGE_TOKEN_ENV, "").strip() or "local-forge-eval"
+    return ForgeEvalLineageEmitter.from_env(base_url=base_url, writer_token=token)
+
+
+def _emit_centipede_lineage(
+    *,
+    bundle_artifact: dict[str, Any],
+    contract_payload: dict[str, Any],
+    local_bundle_path: Path,
+    run_id: str,
+    base_commit: str,
+    head_commit: str,
+) -> str:
+    """Emit forge-eval run+bundle lineage; record the bundle artifact ref on the bundle node.
+
+    ``artifact_ref`` points at the LOCAL bundle (``forge_eval_evidence_bundle.json``), not the
+    contract payload — the local bundle is the artifact a downstream consumer's resolver reads
+    (`payload.input_contract.target_refs[].file_path`, `payload.repo_path`, `payload.head_commit`);
+    the contract payload carries only `repository_id` + `artifact_refs`, no file targets.
+
+    Non-blocking by doctrine: any failure (SDK absent, DataForge-Local unreachable, bad
+    response) is logged and swallowed so raw execution always completes. Returns the lineage
+    outcome string for observability.
+    """
+    try:
+        emitter = _build_lineage_emitter()
+        status = emitter.emit_run_and_bundle(
+            forge_eval_run_id=run_id,
+            repository_id=str(contract_payload.get("repository_id") or ""),
+            head_ref=head_commit,
+            base_ref=base_commit,
+            evidence_bundle=bundle_artifact,
+            bundle_artifact_path=str(local_bundle_path),
+            bundle_artifact_hash=_sha256_file(local_bundle_path),
+        )
+        return status.outcome
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "forge_eval lineage emission skipped; raw execution continues", exc_info=exc
+        )
+        return "lineage_missing"
 
 
 def _sha256_file(path: Path) -> str:
@@ -262,6 +324,15 @@ def run_centipede_pipeline(
     )
     write_json_file(out / CENTIPEDE_CONTRACT_PAYLOAD_FILENAME, contract_payload)
 
+    lineage_outcome = _emit_centipede_lineage(
+        bundle_artifact=bundle_artifact,
+        contract_payload=contract_payload,
+        local_bundle_path=local_bundle_path,
+        run_id=run_id,
+        base_commit=base_commit,
+        head_commit=head_commit,
+    )
+
     return {
         "run_id": run_id,
         "base_commit": base_commit,
@@ -275,4 +346,5 @@ def run_centipede_pipeline(
         ],
         "validation": validation_result,
         "contract_validation": contract_validation_result,
+        "lineage": lineage_outcome,
     }
