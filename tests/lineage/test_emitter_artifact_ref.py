@@ -68,6 +68,24 @@ def test_bundle_node_omits_artifact_ref_when_path_absent():
     assert "artifact_ref" not in _bundle_node(client.envelopes[0])
 
 
+def test_bundle_artifact_kind_defaults_to_forge_eval_evidence_bundle_and_is_overridable():
+    """The artifact_kind label defaults to the centipede fix-target bundle, but the
+    stage_runner path overrides it to `evidence_bundle` (a full-evaluation bundle)."""
+    client = _CapturingClient()
+    ForgeEvalLineageEmitter(client).emit_run_and_bundle(
+        forge_eval_run_id="fe-sr",
+        repository_id="repo:demo",
+        head_ref="h",
+        base_ref="b",
+        evidence_bundle=_evidence_bundle("fe-sr"),
+        bundle_artifact_path="/runs/fe-sr/evidence_bundle.json",
+        bundle_artifact_kind="evidence_bundle",
+    )
+    ref = _bundle_node(client.envelopes[0])["artifact_ref"]
+    assert ref["artifact_kind"] == "evidence_bundle"
+    assert ref["artifact_path"].endswith("evidence_bundle.json")
+
+
 def test_explicit_artifact_hash_is_self_verifying_file_hash():
     """When the caller supplies the file's own hash, the ref records it (not the bundle
     identity hash) so a consumer can verify the file it reads at artifact_path."""
