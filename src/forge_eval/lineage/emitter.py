@@ -112,6 +112,7 @@ class ForgeEvalLineageEmitter:
         trace_id: str | None = None,
         bundle_artifact_path: str | None = None,
         bundle_artifact_hash: str | None = None,
+        bundle_artifact_kind: str = "forge_eval_evidence_bundle",
     ) -> LineageEmissionStatus:
         """Emit run + bundle nodes and the produced edge as a single envelope.
 
@@ -122,8 +123,12 @@ class ForgeEvalLineageEmitter:
         ``repo_path`` / ``head_commit``; the identity-only node payload does not carry the file
         targets. ``bundle_artifact_hash`` (optional) is the sha256 of the file at that
         path, making the ref self-verifying; when omitted it falls back to the bundle identity
-        hash. Never raises: any error is captured in ``LineageEmissionStatus.error`` and the
-        returned ``outcome`` is ``lineage_missing`` or ``lineage_degraded``.
+        hash. ``bundle_artifact_kind`` labels the referenced artifact's flavour — the default
+        ``forge_eval_evidence_bundle`` is the centipede target-ref bundle a self-healing consumer
+        resolves; the stage_runner path passes ``evidence_bundle`` so a consumer can tell a
+        full-evaluation bundle (no per-file fix targets) apart from a fix-target bundle. Never
+        raises: any error is captured in ``LineageEmissionStatus.error`` and the returned
+        ``outcome`` is ``lineage_missing`` or ``lineage_degraded``.
         """
         try:
             return self._emit(
@@ -136,6 +141,7 @@ class ForgeEvalLineageEmitter:
                 trace_id=trace_id,
                 bundle_artifact_path=bundle_artifact_path,
                 bundle_artifact_hash=bundle_artifact_hash,
+                bundle_artifact_kind=bundle_artifact_kind,
             )
         except Exception as exc:  # noqa: BLE001
             logger.warning(
@@ -158,6 +164,7 @@ class ForgeEvalLineageEmitter:
         trace_id: str | None,
         bundle_artifact_path: str | None = None,
         bundle_artifact_hash: str | None = None,
+        bundle_artifact_kind: str = "forge_eval_evidence_bundle",
     ) -> LineageEmissionStatus:
         trace = trace_id or f"trace:forge-eval:{forge_eval_run_id}"
 
@@ -195,7 +202,7 @@ class ForgeEvalLineageEmitter:
         bundle_artifact_ref = None
         if bundle_artifact_path:
             bundle_artifact_ref = {
-                "artifact_kind": "forge_eval_evidence_bundle",
+                "artifact_kind": bundle_artifact_kind,
                 "artifact_path": bundle_artifact_path,
                 # sha256 of the file at artifact_path (self-verifying); falls back to the
                 # bundle identity hash when the caller did not supply the file hash.

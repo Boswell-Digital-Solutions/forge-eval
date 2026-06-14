@@ -63,6 +63,9 @@ repo/
     validation/
       schema_loader.py
       validate_artifact.py
+    lineage/
+      emitter.py        # ForgeEvalLineageEmitter / NullLineageEmitter (run + bundle nodes, produced edge)
+      run_emit.py       # shared opt-in/fail-soft run-path emit (centipede + stage_runner)
   tests/
     test_cli.py
     test_config.py

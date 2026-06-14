@@ -113,6 +113,22 @@ Planned downstream (not implemented here): publish/release or governance executi
 11. Merge-decision subsystem (`services/merge_decision_model.py`, `services/merge_decision_reasons.py`, `services/merge_decision_summary.py`)
 12. Evidence-bundle subsystem (`services/evidence_bundle_model.py`, `services/evidence_bundle_manifest.py`, `services/evidence_bundle_summary.py`)
 13. Evidence subsystem (Rust binary under `rust/forge-evidence`, Python wrapper in `evidence_cli.py`)
+14. Lineage emission — DETECT hop (`src/forge_eval/lineage/*`)
+
+### Lineage emission (DETECT hop)
+
+Both run paths emit `forge_eval_run` + `forge_eval_evidence_bundle` lineage (with a `produced`
+edge) to DataForge-Local after writing their bundle, so a real run is traceable downstream
+(this is the DETECT hop of the self-healing loop). Posture is **default-off** (a no-op emitter
+until the operator sets `FORGE_EVAL_LINEAGE_URL`) and **non-blocking** (any failure is logged and
+swallowed; raw execution always completes). The shared posture + generic emit live in
+`lineage/run_emit.py`; `run-centipede` (`centipede_runner.py`) and `run` (`stage_runner.py`) both
+use it. The bundle node is identity-only; the file targets live in the bundle artifact, located via
+the node's `artifact_ref`. The artifact is labelled by **kind**: `run-centipede` produces a
+`forge_eval_evidence_bundle` (carries `input_contract.target_refs[]` — a self-healing consumer
+resolves concrete fix targets from it), whereas `run` produces a full-evaluation `evidence_bundle`
+(no per-file fix targets) — a self-healing consumer fails closed on it by design (a general
+evaluation run is not a concrete fix list).
 
 ## Runtime Flow (`forge-eval run`)
 
@@ -252,6 +268,9 @@ repo/
     validation/
       schema_loader.py
       validate_artifact.py
+    lineage/
+      emitter.py        # ForgeEvalLineageEmitter / NullLineageEmitter (run + bundle nodes, produced edge)
+      run_emit.py       # shared opt-in/fail-soft run-path emit (centipede + stage_runner)
   tests/
     test_cli.py
     test_config.py

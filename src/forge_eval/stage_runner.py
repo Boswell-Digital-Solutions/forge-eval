@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from forge_eval.errors import StageError, ValidationError
+from forge_eval.lineage.run_emit import emit_run_bundle_lineage
 from forge_eval.services.git_diff import resolve_commit
 from forge_eval.stages.capture_estimate import run_stage as run_capture_estimate_stage
 from forge_eval.stages.context_slices import run_stage as run_context_slices_stage
@@ -373,6 +374,26 @@ def run_pipeline(
         artifact_results[expected_kind] = artifact
         write_json_file(out / f"{expected_kind}.json", artifact)
 
+    # DETECT-hop lineage (opt-in, fail-soft): anchor this run in DataForge-Local lineage
+    # when an evidence_bundle was produced. The stage_runner's `evidence_bundle` is a
+    # FULL-evaluation bundle, not a centipede fix-target bundle — so the artifact_ref is
+    # labelled `evidence_bundle` (not `forge_eval_evidence_bundle`) and carries NO
+    # `input_contract.target_refs`; a self-healing consumer fails closed on it by design
+    # (a general evaluation run is not a concrete fix list). repository_id is the repo
+    # directory name (best-effort logical id; matches the downstream resolver's fallback).
+    lineage_outcome = "lineage_skipped_no_bundle"
+    evidence_bundle = artifact_results.get("evidence_bundle")
+    if evidence_bundle is not None:
+        lineage_outcome = emit_run_bundle_lineage(
+            evidence_bundle=evidence_bundle,
+            repository_id=repo.resolve().name,
+            run_id=run_id,
+            base_commit=base_commit,
+            head_commit=head_commit,
+            local_bundle_path=out / "evidence_bundle.json",
+            bundle_artifact_kind="evidence_bundle",
+        )
+
     return {
         "run_id": run_id,
         "base_commit": base_commit,
@@ -381,6 +402,7 @@ def run_pipeline(
             "config.resolved.json",
             *[f"{kind}.json" for kind in artifact_results.keys()],
         ],
+        "lineage": lineage_outcome,
     }
 
 
