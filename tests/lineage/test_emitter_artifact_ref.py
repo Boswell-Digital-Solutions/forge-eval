@@ -6,6 +6,7 @@ that `bundle_artifact_path` lands as the bundle node's `artifact_ref` — direct
 from __future__ import annotations
 
 from forge_lineage_sdk import LocalOutcome
+from forge_lineage_sdk.validators import validate_node
 
 from forge_eval.lineage.emitter import ForgeEvalLineageEmitter
 
@@ -51,9 +52,11 @@ def test_bundle_node_records_artifact_ref_when_path_given():
     )
     assert status.outcome == "lineage_available"
     ref = _bundle_node(client.envelopes[0])["artifact_ref"]
-    assert ref["artifact_kind"] == "forge_eval_evidence_bundle"
-    assert ref["artifact_path"].endswith("forge_eval_evidence_bundle.contract.json")
-    assert ref["artifact_hash"]  # the bundle payload hash
+    # Conforms to ArtifactRef.v1: family = kind, id = the locator path, payload_hash = file hash.
+    assert ref["schema_version"] == "ArtifactRef.v1"
+    assert ref["artifact_family"] == "forge_eval_evidence_bundle"
+    assert ref["artifact_id"].endswith("forge_eval_evidence_bundle.contract.json")
+    assert ref["payload_hash"]  # the bundle payload hash
 
 
 def test_bundle_node_omits_artifact_ref_when_path_absent():
@@ -82,13 +85,13 @@ def test_bundle_artifact_kind_defaults_to_forge_eval_evidence_bundle_and_is_over
         bundle_artifact_kind="evidence_bundle",
     )
     ref = _bundle_node(client.envelopes[0])["artifact_ref"]
-    assert ref["artifact_kind"] == "evidence_bundle"
-    assert ref["artifact_path"].endswith("evidence_bundle.json")
+    assert ref["artifact_family"] == "evidence_bundle"
+    assert ref["artifact_id"].endswith("evidence_bundle.json")
 
 
 def test_explicit_artifact_hash_is_self_verifying_file_hash():
-    """When the caller supplies the file's own hash, the ref records it (not the bundle
-    identity hash) so a consumer can verify the file it reads at artifact_path."""
+    """When the caller supplies the file's own hash, the ref's payload_hash records it
+    (not the bundle identity hash) so a consumer can verify the file it reads."""
     client = _CapturingClient()
     file_hash = "f" * 64
     ForgeEvalLineageEmitter(client).emit_run_and_bundle(
@@ -96,10 +99,29 @@ def test_explicit_artifact_hash_is_self_verifying_file_hash():
         repository_id="repo:demo",
         head_ref="h",
         base_ref="b",
-        evidence_bundle=_evidence_bundle("fe-fh"),  # bundle identity hash = "a" * 64
+        evidence_bundle=_evidence_bundle("fe-fh"),
         bundle_artifact_path="/runs/fe-fh/forge_eval_evidence_bundle.contract.json",
         bundle_artifact_hash=file_hash,
     )
     ref = _bundle_node(client.envelopes[0])["artifact_ref"]
-    assert ref["artifact_hash"] == file_hash
-    assert ref["artifact_hash"] != "a" * 64  # not the bundle identity hash
+    assert ref["payload_hash"] == file_hash
+
+
+def test_emitted_bundle_node_passes_real_sdk_schema_validation():
+    """REGRESSION GUARD: the capturing client bypasses SDK validation — which is exactly
+    why the non-conformant artifact_ref shipped undetected. Validate the emitted bundle
+    node against the REAL LineageNode.v1 / ArtifactRef.v1 schema so it cannot regress."""
+    client = _CapturingClient()
+    ForgeEvalLineageEmitter(client).emit_run_and_bundle(
+        forge_eval_run_id="fe-val",
+        repository_id="repo:demo",
+        head_ref="h",
+        base_ref="b",
+        evidence_bundle=_evidence_bundle("fe-val"),
+        bundle_artifact_path="/runs/fe-val/forge_eval_evidence_bundle.json",
+        bundle_artifact_hash="a" * 64,
+    )
+    envelope = client.envelopes[0]
+    # Every node the emitter builds must be schema-valid (the artifact_ref'd bundle especially).
+    for node in envelope["nodes"]:
+        validate_node(node)  # raises SchemaValidationError if non-conformant

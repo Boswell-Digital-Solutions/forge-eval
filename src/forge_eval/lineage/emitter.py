@@ -197,16 +197,23 @@ class ForgeEvalLineageEmitter:
             "payload_hash": bundle_hash,
             "stage_count": _stage_count(evidence_bundle),
         }
-        # Record where the evidence-bundle contract JSON lives so a consumer can fetch the file
+        # Record where the evidence-bundle artifact lives so a consumer can fetch the file
         # targets (the node payload is identity-only). The node is the single lineage index.
+        # This MUST conform to the canonical ``ArtifactRef.v1`` schema (identity-only,
+        # additionalProperties:false): ``artifact_family`` carries the bundle kind, and
+        # ``artifact_id`` carries the local artifact path (the consumer reads it as the
+        # locator on this single-operator local box), with ``payload_hash`` for self-verifying
+        # the file. There is no first-class path/kind field in ArtifactRef.v1.
         bundle_artifact_ref = None
         if bundle_artifact_path:
             bundle_artifact_ref = {
-                "artifact_kind": bundle_artifact_kind,
-                "artifact_path": bundle_artifact_path,
-                # sha256 of the file at artifact_path (self-verifying); falls back to the
-                # bundle identity hash when the caller did not supply the file hash.
-                "artifact_hash": bundle_artifact_hash or bundle_hash,
+                "schema_version": "ArtifactRef.v1",
+                "artifact_family": bundle_artifact_kind,
+                "artifact_id": bundle_artifact_path,
+                # sha256 of the file at artifact_id (self-verifying); falls back to the
+                # bundle identity hash when the caller did not supply the file hash. Both
+                # are sha256 hexdigests, matching ArtifactRef.v1's payload_hash pattern.
+                "payload_hash": bundle_artifact_hash or bundle_hash,
             }
         bundle_node = build_node(
             node_type="forge_eval_evidence_bundle",
