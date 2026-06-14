@@ -117,8 +117,10 @@ class ForgeEvalLineageEmitter:
 
         ``bundle_artifact_path`` (when provided) is recorded on the bundle node as an
         ``artifact_ref`` so a downstream consumer (e.g. ForgeCommand's self-healing tick) can
-        locate the evidence-bundle contract JSON — the identity-only node payload does not carry
-        the file targets. ``bundle_artifact_hash`` (optional) is the sha256 of the file at that
+        locate the evidence-bundle artifact — point it at the LOCAL bundle JSON
+        (``forge_eval_evidence_bundle.json``), which carries ``input_contract.target_refs`` /
+        ``repo_path`` / ``head_commit``; the identity-only node payload does not carry the file
+        targets. ``bundle_artifact_hash`` (optional) is the sha256 of the file at that
         path, making the ref self-verifying; when omitted it falls back to the bundle identity
         hash. Never raises: any error is captured in ``LineageEmissionStatus.error`` and the
         returned ``outcome`` is ``lineage_missing`` or ``lineage_degraded``.

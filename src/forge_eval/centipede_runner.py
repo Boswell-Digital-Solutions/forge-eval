@@ -59,12 +59,17 @@ def _emit_centipede_lineage(
     *,
     bundle_artifact: dict[str, Any],
     contract_payload: dict[str, Any],
-    contract_path: Path,
+    local_bundle_path: Path,
     run_id: str,
     base_commit: str,
     head_commit: str,
 ) -> str:
-    """Emit forge-eval run+bundle lineage; record the contract artifact ref on the bundle node.
+    """Emit forge-eval run+bundle lineage; record the bundle artifact ref on the bundle node.
+
+    ``artifact_ref`` points at the LOCAL bundle (``forge_eval_evidence_bundle.json``), not the
+    contract payload — the local bundle is the artifact a downstream consumer's resolver reads
+    (`payload.input_contract.target_refs[].file_path`, `payload.repo_path`, `payload.head_commit`);
+    the contract payload carries only `repository_id` + `artifact_refs`, no file targets.
 
     Non-blocking by doctrine: any failure (SDK absent, DataForge-Local unreachable, bad
     response) is logged and swallowed so raw execution always completes. Returns the lineage
@@ -78,8 +83,8 @@ def _emit_centipede_lineage(
             head_ref=head_commit,
             base_ref=base_commit,
             evidence_bundle=bundle_artifact,
-            bundle_artifact_path=str(contract_path),
-            bundle_artifact_hash=_sha256_file(contract_path),
+            bundle_artifact_path=str(local_bundle_path),
+            bundle_artifact_hash=_sha256_file(local_bundle_path),
         )
         return status.outcome
     except Exception as exc:  # noqa: BLE001
@@ -317,13 +322,12 @@ def run_centipede_pipeline(
     contract_validation_result = validate_forge_eval_evidence_bundle_payload(
         contract_payload
     )
-    contract_path = out / CENTIPEDE_CONTRACT_PAYLOAD_FILENAME
-    write_json_file(contract_path, contract_payload)
+    write_json_file(out / CENTIPEDE_CONTRACT_PAYLOAD_FILENAME, contract_payload)
 
     lineage_outcome = _emit_centipede_lineage(
         bundle_artifact=bundle_artifact,
         contract_payload=contract_payload,
-        contract_path=contract_path,
+        local_bundle_path=local_bundle_path,
         run_id=run_id,
         base_commit=base_commit,
         head_commit=head_commit,

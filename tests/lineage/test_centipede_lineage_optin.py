@@ -22,12 +22,12 @@ def test_emitter_defaults_to_noop_when_url_unset(monkeypatch):
 
 def test_emit_is_noop_and_returns_missing_when_off(monkeypatch, tmp_path):
     monkeypatch.delenv(FORGE_EVAL_LINEAGE_URL_ENV, raising=False)
-    contract = tmp_path / "forge_eval_evidence_bundle.contract.json"
-    contract.write_text('{"repository_id":"repo:demo"}\n', encoding="utf-8")
+    local_bundle = tmp_path / "forge_eval_evidence_bundle.json"
+    local_bundle.write_text('{"kind":"forge_eval_evidence_bundle"}\n', encoding="utf-8")
     outcome = _emit_centipede_lineage(
         bundle_artifact={"run_id": "r"},
         contract_payload={"repository_id": "repo:demo"},
-        contract_path=contract,
+        local_bundle_path=local_bundle,
         run_id="r",
         base_commit="b",
         head_commit="h",
@@ -45,12 +45,12 @@ def test_emit_is_non_blocking_on_emitter_failure(monkeypatch, tmp_path):
     monkeypatch.setattr(
         centipede_runner.ForgeEvalLineageEmitter, "from_env", staticmethod(_boom)
     )
-    contract = tmp_path / "forge_eval_evidence_bundle.contract.json"
-    contract.write_text("{}\n", encoding="utf-8")
+    local_bundle = tmp_path / "forge_eval_evidence_bundle.json"
+    local_bundle.write_text("{}\n", encoding="utf-8")
     outcome = _emit_centipede_lineage(
         bundle_artifact={},
         contract_payload={},
-        contract_path=contract,
+        local_bundle_path=local_bundle,
         run_id="r",
         base_commit="b",
         head_commit="h",
