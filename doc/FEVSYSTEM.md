@@ -62,6 +62,8 @@ bash doc/system/BUILD.sh
 
 # §1 - Overview and Philosophy
 
+> **System identity — bds family (Boswell Digital Solutions business system, local-systems tier).** This service is part of the Forge ecosystem backend in `ecosystem/local-systems` — a business-side evaluation subsystem, not public-app support.
+
 ## Purpose
 
 `forge-eval` is a deterministic, fail-closed evaluation foundation implementing Packs A-M:

@@ -1,4 +1,8 @@
-# Forge Eval
+# bds · Forge Eval
+
+> **System identity — bds family (Boswell Digital Solutions business system, local-systems tier).**
+> The deterministic evaluation subsystem for the Forge **ecosystem backend**; part of `ecosystem/local-systems`.
+> **Purpose:** business-side evaluation runtime — fail-closed, schema-validated behavioral/hazard evaluation, not public-app support.
 
 Deterministic, schema-validated, fail-closed evaluation subsystem for the Forge ecosystem.
 
