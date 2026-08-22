@@ -23,10 +23,26 @@ logger = logging.getLogger(__name__)
 # can rely on ``pip install -e contracts/forge_lineage/sdk`` later.
 def _ensure_sdk_on_path() -> None:
     here = Path(__file__).resolve()
-    candidates = [
-        here.parents[6] / "contracts" / "forge_lineage" / "sdk",
-        Path.home() / "Forge" / "ecosystem" / "contracts" / "forge_lineage" / "sdk",
-    ]
+    candidates: list[Path] = []
+    # Walk up from this file's location, checking both the flat
+    # (<root>/contracts/...) and nested (<root>/ecosystem/contracts/...)
+    # sibling-repo layouts at each level. A hardcoded parent index (the
+    # previous approach) assumed one specific nesting depth and raised
+    # IndexError — crashing on *import* of this module, not just failing to
+    # find the SDK — on any checkout shallower than that, e.g. a flat
+    # C:\Forge\forge-eval rather than ~/Forge/ecosystem/forge-eval. `parents`
+    # is naturally bounded at the filesystem root, so this can't overrun.
+    for ancestor in list(here.parents)[:8]:
+        candidates.append(ancestor / "contracts" / "forge_lineage" / "sdk")
+        candidates.append(ancestor / "ecosystem" / "contracts" / "forge_lineage" / "sdk")
+        # Some checkouts have `forge_lineage` as its own top-level sibling
+        # repo (not nested under a `contracts/` folder) — e.g. a flat
+        # `<ecosystem-root>/forge_lineage/sdk` layout.
+        candidates.append(ancestor / "forge_lineage" / "sdk")
+        candidates.append(ancestor / "ecosystem" / "forge_lineage" / "sdk")
+    candidates.append(Path.home() / "Forge" / "ecosystem" / "contracts" / "forge_lineage" / "sdk")
+    candidates.append(Path.home() / "Forge" / "contracts" / "forge_lineage" / "sdk")
+
     for c in candidates:
         if c.exists() and str(c) not in sys.path:
             sys.path.insert(0, str(c))
@@ -301,6 +317,17 @@ def _bundle_identity(evidence_bundle: dict[str, Any]) -> tuple[str, str]:
 
 
 def _stage_count(evidence_bundle: dict[str, Any]) -> int:
+    """Count of artifacts produced by whichever bundle kind was passed in.
+
+    ``forge-eval run`` bundles carry a top-level ``artifacts`` list (or a
+    ``manifest.artifacts`` list on older shapes). ``forge-eval run-centipede``
+    bundles — the only kind self-healing actually consumes — carry neither;
+    their artifact list is ``artifact_refs``. Without this fallback every
+    centipede bundle reports ``stage_count: 0`` regardless of whether the
+    underlying evaluation ran on real or synthetic content, which made
+    genuine real-repo runs indistinguishable from synthetic proving runs in
+    lineage observability.
+    """
     artifacts = evidence_bundle.get("artifacts")
     if isinstance(artifacts, list):
         return len(artifacts)
@@ -309,4 +336,7 @@ def _stage_count(evidence_bundle: dict[str, Any]) -> int:
         items = manifest.get("artifacts")
         if isinstance(items, list):
             return len(items)
+    artifact_refs = evidence_bundle.get("artifact_refs")
+    if isinstance(artifact_refs, list):
+        return len(artifact_refs)
     return 0

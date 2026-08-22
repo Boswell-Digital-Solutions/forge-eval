@@ -13,9 +13,29 @@ from pathlib import Path
 
 import pytest
 
-_REPO_ROOT = Path(__file__).resolve().parents[5]
+def _find_ecosystem_root() -> Path:
+    """Walk up from this test file looking for the sibling-repo root.
+
+    A hardcoded `parents[N]` index assumes one specific checkout nesting
+    depth and raises `IndexError` on any other (e.g. a flat
+    `C:\\Forge\\forge-eval` checkout vs. a nested
+    `~/Forge/ecosystem/forge-eval` one) — `parents` itself is naturally
+    bounded at the filesystem root, so walking it can't overrun.
+    """
+    here = Path(__file__).resolve()
+    for ancestor in list(here.parents)[:8]:
+        if (ancestor / "dataforge-Local").is_dir() or (ancestor / "forge_lineage").is_dir():
+            return ancestor
+    return here.parents[-1]
+
+
+_REPO_ROOT = _find_ecosystem_root()
 _DATAFORGE_LOCAL = _REPO_ROOT / "dataforge-Local"
+# `forge_lineage` may be nested under `contracts/` (one checkout convention)
+# or a plain top-level sibling repo (another) — try both.
 _SDK_PATH = _REPO_ROOT / "contracts" / "forge_lineage" / "sdk"
+if not _SDK_PATH.is_dir():
+    _SDK_PATH = _REPO_ROOT / "forge_lineage" / "sdk"
 for p in (_SDK_PATH, _DATAFORGE_LOCAL):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
