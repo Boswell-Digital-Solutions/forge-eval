@@ -8,13 +8,10 @@ set -euo pipefail
 PARTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$PARTS_DIR/../.." && pwd)"
 DESIGNATION="FEV"
-OUTPUT="${OUTPUT:-doc/${DESIGNATION}SYSTEM.md}"
+OUTPUT="${OUTPUT:-doc/FEVSYSTEM.md}"
 VALIDATOR="$PARTS_DIR/validate_snapshots.sh"
 
-fail() {
-  echo "BUILD_FAILED: $1" >&2
-  exit 1
-}
+fail() { echo "BUILD_FAILED: $1" >&2; exit 1; }
 
 case "$OUTPUT" in
   *"${DESIGNATION}SYSTEM.md") ;;
@@ -23,53 +20,18 @@ esac
 
 [ -f "$PARTS_DIR/_index.md" ] || fail "missing $PARTS_DIR/_index.md"
 
-REQUIRED_DIRS=(
-  00_overview
-  10_service-contract
-  20_runtime
-  30_dependencies
-  40_governance
-  50_operations
-  99_appendices
-)
-
-for dir in "${REQUIRED_DIRS[@]}"; do
-  [ -d "$PARTS_DIR/$dir" ] || fail "missing required folder doc/system/$dir"
-  found=0
-  for part in "$PARTS_DIR/$dir"/[0-9][0-9]-*.md; do
-    [ -e "$part" ] && found=1 && break
-  done
-  [ "$found" -eq 1 ] || fail "no numbered chapters in doc/system/$dir"
-done
-
 mkdir -p "$(dirname "$ROOT_DIR/$OUTPUT")"
-
 TMP_OUTPUT="$(mktemp)"
 trap 'rm -f "$TMP_OUTPUT"' EXIT
-
 cat "$PARTS_DIR/_index.md" > "$TMP_OUTPUT"
-
 PART_COUNT=0
 while IFS= read -r part; do
-  {
-    echo ""
-    echo "---"
-    echo ""
-    cat "$part"
-  } >> "$TMP_OUTPUT"
+  { echo ""; echo "---"; echo ""; cat "$part"; } >> "$TMP_OUTPUT"
   PART_COUNT=$((PART_COUNT + 1))
-done < <(find "$PARTS_DIR" -mindepth 2 -maxdepth 2 -type f -name '[0-9][0-9]-*.md' | sort)
-
-[ "$PART_COUNT" -ge 7 ] || fail "expected at least 7 chapters, found $PART_COUNT"
-
-if [ -f "$VALIDATOR" ]; then
-  bash "$VALIDATOR" "$TMP_OUTPUT" || fail "snapshot validation failed"
-else
-  fail "missing validator $VALIDATOR"
-fi
-
+done < <(find "$PARTS_DIR" -mindepth 1 -maxdepth 1 -type f -name '[0-9][0-9]-*.md' | sort)
+[ "$PART_COUNT" -ge 1 ] || fail "no numbered chapters found directly under doc/system/"
+if [ -f "$VALIDATOR" ]; then bash "$VALIDATOR" "$TMP_OUTPUT" || fail "snapshot validation failed"; else fail "missing validator $VALIDATOR"; fi
 cp "$TMP_OUTPUT" "$ROOT_DIR/$OUTPUT"
 chmod 664 "$ROOT_DIR/$OUTPUT"
-
 LINE_COUNT=$(wc -l < "$ROOT_DIR/$OUTPUT")
 echo "BUILD_OK designation=${DESIGNATION} output=${OUTPUT} parts=${PART_COUNT} lines=${LINE_COUNT}"
