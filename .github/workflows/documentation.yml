@@ -1,0 +1,44 @@
+name: Documentation
+
+# Runs on documentation changes only. A change to code runs the code CI.
+# A change to documentation runs this workflow and no code CI.
+# See doc/system/10-testing-determinism.md ("Which CI runs for which change").
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'doc/**'
+      - '**/*.md'
+      - '.github/workflows/documentation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'doc/**'
+      - '**/*.md'
+      - '.github/workflows/documentation.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: documentation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  documentation:
+    name: Documentation (system build and snapshots)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Builds doc/FEVSYSTEM.md from doc/system/ and validates the snapshots.
+      - name: Build the system reference
+        run: bash doc/system/BUILD.sh
+
+      # doc/FEVSYSTEM.md is committed. The build must reproduce it from its parts.
+      - name: Fail if the assembled reference differs from its parts
+        run: git diff --exit-code -- doc

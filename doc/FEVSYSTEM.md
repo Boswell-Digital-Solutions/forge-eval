@@ -723,6 +723,46 @@ Scope and authority boundary of this documentation system.
 - explicit occupancy semantics (`null` contributes uncertainty, usable misses drive suppression)
 - explicit hidden-defect semantics (singletons elevate caution, sparse guards stay visible)
 
+## Which CI runs for which change
+
+A change to documentation runs the Documentation CI and no code CI.
+A change to any other file runs the code CI.
+A change to both runs both.
+No workflow runs on a schedule.
+
+The code workflow `.github/workflows/ci.yml` (jobs `python` and `rust`) uses a workflow-level `paths` filter on `push` and on `pull_request`:
+
+```yaml
+paths:
+  - '**'
+  - '!docs/**'
+  - '!doc/**'
+  - '!**/*.md'
+  - 'README.md'
+```
+
+The last matching pattern wins, so the re-include comes last.
+A change to `.github/workflows/**` is code, so it runs the code CI.
+
+The re-include is documentation that code reads:
+
+- `README.md`: `pyproject.toml` sets `readme = "README.md"`. The `python` job runs `pip install -e ".[dev]"`, and the build reads the file.
+
+No test reads `doc/`, `docs/` or another Markdown file of this repository.
+Tests that write Markdown files do so in temporary repositories.
+If a test or script starts to read another documentation path, add that path as a re-include.
+
+The Documentation CI is `.github/workflows/documentation.yml`.
+It runs on a change under `docs/`, under `doc/`, to any `*.md` file, or to its own workflow file.
+It runs `bash doc/system/BUILD.sh` and then `git diff --exit-code -- doc`.
+`doc/FEVSYSTEM.md` is committed, so the diff step fails when the assembled reference does not match its parts.
+
+This repository has no secret scan workflow.
+If a secret scan is added, it must run on every change and must not use a path filter.
+
+Warning: do not add a required status check on a path-filtered workflow.
+The check stays pending forever when the filter skips the workflow, and the merge stays blocked.
+
 ---
 
 # §11 - Handover and Runbook
