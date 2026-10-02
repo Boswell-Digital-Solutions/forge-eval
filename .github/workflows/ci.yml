@@ -3,7 +3,19 @@ name: CI
 on:
   push:
     branches: ["main", "claude/**"]
+    paths:
+      - '**'
+      - '!docs/**'
+      - '!doc/**'
+      - '!**/*.md'
+      - 'README.md'
   pull_request:
+    paths:
+      - '**'
+      - '!docs/**'
+      - '!doc/**'
+      - '!**/*.md'
+      - 'README.md'
 
 permissions:
   contents: read
