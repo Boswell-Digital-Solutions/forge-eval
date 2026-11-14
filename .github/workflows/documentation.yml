@@ -35,10 +35,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Builds doc/FEVSYSTEM.md from doc/system/ and validates the snapshots.
+      # Builds doc/fevSYSTEM.md from doc/system/ and validates the snapshots.
       - name: Build the system reference
         run: bash doc/system/BUILD.sh
 
-      # doc/FEVSYSTEM.md is committed. The build must reproduce it from its parts.
+      # doc/fevSYSTEM.md is committed. The build must reproduce it from its parts.
       - name: Fail if the assembled reference differs from its parts
         run: git diff --exit-code -- doc

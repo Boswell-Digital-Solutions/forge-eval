@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Assembles the compiled system reference (designation FEV).
+# Assembles the compiled system reference (designation fev).
 # Fail-closed: missing structure, designation/output mismatch, or snapshot
 # validation failure aborts the build with BUILD_FAILED on stderr.
 
 PARTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$PARTS_DIR/../.." && pwd)"
-DESIGNATION="FEV"
-OUTPUT="${OUTPUT:-doc/FEVSYSTEM.md}"
+DESIGNATION="fev"
+OUTPUT="${OUTPUT:-doc/fevSYSTEM.md}"
 VALIDATOR="$PARTS_DIR/validate_snapshots.sh"
 
 fail() { echo "BUILD_FAILED: $1" >&2; exit 1; }

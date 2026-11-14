@@ -80,7 +80,7 @@ If a test or script starts to read another documentation path, add that path as 
 The Documentation CI is `.github/workflows/documentation.yml`.
 It runs on a change under `docs/`, under `doc/`, to any `*.md` file, or to its own workflow file.
 It runs `bash doc/system/BUILD.sh` and then `git diff --exit-code -- doc`.
-`doc/FEVSYSTEM.md` is committed, so the diff step fails when the assembled reference does not match its parts.
+`doc/fevSYSTEM.md` is committed, so the diff step fails when the assembled reference does not match its parts.
 
 This repository has no secret scan workflow.
 If a secret scan is added, it must run on every change and must not use a path filter.
