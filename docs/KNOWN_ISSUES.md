@@ -2,6 +2,8 @@
 
 Dated findings with evidence, root cause, and an explicit open or closed scope. Recording a finding is not authorization to repair it.
 
+> **Home paths.** Since 2026-11-17 this file writes the operator's home directory as `~`, and the home directory of another account as `~name`. This applies inside quoted source, commands and output too, so a quoted shebang or a quoted shell string shows `~` where the source held the absolute path. Reason: the KI store refuses an absolute home path in any field (plan BDS-KIDATA-v0.1, `KI-APPRENTICE-20261117-001` in the apprentice repository; operator decision (a), 2026-11-17).
+
 ## 2026-11-09 — doc/system §01 stops at Pack M, and §11 names a checkout path that does not exist
 
 **Status: OPEN.** Recorded 2026-11-09. Recorded by forge BDS-FGITR-v0.1 (governance truth audit). Verified by source reading on `main` `be8431f`.
@@ -11,7 +13,7 @@ Dated findings with evidence, root cause, and an explicit open or closed scope. 
 1. `doc/system/01-overview-philosophy.md:7` says forge-eval implements Packs A-M. The list at lines 9-21 ends at Pack M.
 2. `doc/system/01-overview-philosophy.md:27` gives the implemented path. The path ends at `evidence_bundle`.
 3. The code has one more stage. `src/forge_eval/config.py:12-23` `KNOWN_STAGES` ends at `localization_pack` (line 22). `src/forge_eval/stages/localization_pack.py` implements it. `doc/system/19-localization-pack-stage.md` documents it as Pack N.
-4. `doc/system/11-handover-runbook.md:6` says `cd /home/charlie/Forge/ecosystem/forge-eval/repo`. That directory does not exist on the operator machine. `doc/system/01-overview-philosophy.md:3` says the repository is in `ecosystem/local-systems`. The forge ecosystem map (`docs/ecosystem/ecosystem_map.json:509`) gives `canonical_path` `ecosystem/local-systems/forge-eval/repo`.
+4. `doc/system/11-handover-runbook.md:6` says `cd ~/Forge/ecosystem/forge-eval/repo`. That directory does not exist on the operator machine. `doc/system/01-overview-philosophy.md:3` says the repository is in `ecosystem/local-systems`. The forge ecosystem map (`docs/ecosystem/ecosystem_map.json:509`) gives `canonical_path` `ecosystem/local-systems/forge-eval/repo`.
 
 **Impact.** Low. A reader of §01 does not learn that Pack N exists. A reader who follows §11 starts in a directory that does not exist.
 
